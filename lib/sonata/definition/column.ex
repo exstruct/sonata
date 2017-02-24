@@ -6,7 +6,8 @@ defmodule Sonata.Definition.Column do
              primary_key: nil,
              constraint: nil,
              unique: nil,
-             default: nil]
+             default: nil,
+             not_null: nil]
 
   defmodule Builder do
     def column(name, type) do
@@ -31,6 +32,10 @@ defmodule Sonata.Definition.Column do
 
     def unique(column) do
       %{column | unique: true}
+    end
+
+    def not_null(column) do
+      %{column | not_null: true}
     end
   end
 end

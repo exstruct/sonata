@@ -301,6 +301,7 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
     {constraint, constraint_params, idx} = constraint(column.constraint, opts, idx)
     {unique, unique_params, idx} = unique(column.unique, opts, idx)
     {default, default_params, idx} = default(column.default, opts, idx)
+    {not_null, not_null_params, idx} = not_null(column.not_null, opts, idx)
 
     {
       join([
@@ -311,7 +312,8 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
         primary_key,
         constraint,
         unique,
-        default
+        default,
+        not_null
       ], " "),
 
       Stream.concat([
@@ -322,7 +324,8 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
         primary_key_params,
         constraint_params,
         unique_params,
-        default_params
+        default_params,
+        not_null_params
       ]),
 
       idx
@@ -384,6 +387,13 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
     {"UNIQUE", [], idx}
   end
   defp unique(_, _, idx) do
+    {nil, [], idx}
+  end
+
+  defp not_null(true, _, idx) do
+    {"NOT NULL", [], idx}
+  end
+  defp not_null(_, _, idx) do
     {nil, [], idx}
   end
 

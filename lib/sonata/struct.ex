@@ -117,6 +117,16 @@ defmodule Sonata.StructBuilder do
 
   """
 
+  defmacro not_null() do
+    quote do
+      var!(column) = %{var!(column) | not_null: true}
+    end
+  end
+
+  @doc """
+
+  """
+
   defmacro references(table) do
     case table do
       _ when is_binary(table) ->
@@ -136,7 +146,11 @@ defmodule Sonata.StructBuilder do
 
   """
 
-  defmacro relation(fun, [do: block]) do
+  defmacro relation(fun, args), do: relation_ast(fun, args)
+
+  defmacro computed(fun, args), do: relation_ast(fun, args)
+
+  defp relation_ast(fun, [do: block]) do
     name = name_to_atom(fun)
     quote do
       @relations unquote(name)

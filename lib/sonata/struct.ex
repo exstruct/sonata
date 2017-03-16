@@ -66,7 +66,7 @@ defmodule Sonata.StructBuilder do
         var!(column_name) = unquote(name_a)
         _ = var!(column_name)
         var!(column) = %Sonata.Definition.Column{name: unquote(name_s)}
-        import unquote(__MODULE__), only: [type: 1, primary_key: 0, default: 1, references: 1]
+        import unquote(__MODULE__), only: [type: 1, primary_key: 0, default: 1, references: 1, not_null: 0]
         unquote(block)
         import unquote(__MODULE__), only: [column: 2]
         var!(column)

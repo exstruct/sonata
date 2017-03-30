@@ -406,6 +406,12 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
   end
 end
 
+defimpl Sonata.Postgres, for: Sonata.Manipulation.Update do
+  def to_sql(%{}, opts, idx) do
+    {[], [], idx}
+  end
+end
+
 defimpl Sonata.Postgres, for: Sonata.Misc.Call do
   def to_sql(%{function: fun, arguments: arguments}, opts, idx) do
     {arguments, {params, idx}} = Enum.map_reduce(arguments, {[], idx}, fn(arg, {params, idx}) ->

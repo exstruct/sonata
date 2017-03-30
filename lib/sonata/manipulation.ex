@@ -6,18 +6,45 @@ defmodule Sonata.Manipulation do
   end
 
   defmodule Update do
-    defstruct [table: nil]
+    defstruct [table: nil,
+               table_alias: nil,
+               sets: [],
+               where: nil,
+               returning: []]
   end
 
   defmodule Builder do
-    def insert_into(table, kvs) when is_map(kvs) do
-      # TODO figure out kvs
-      %Sonata.Manipulation.Insertion{table: table}
+    alias Sonata.Manipulation.{Insertion,Update}
+
+    def insert_into(table) do
+      %Insertion{table: table}
     end
 
-    def update(table, kvs) when is_map(kvs) do
-      # TODO figure out kvs
-      %Sonata.Manipulation.Update{table: table}
+    def insert_into(table, kvs) do
+      insert_into(table)
+    end
+
+    def update(table) do
+      %Update{table: table}
+    end
+
+    def update(table, table_alias \\ nil) do
+      %Update{table: table, table_alias: table_alias}
+    end
+
+    def set(insertion, kvs) when is_map(kvs) do
+      set(insertion, :maps.to_list(kvs))
+    end
+    def set(insertion = %Update{sets: sets}, kvs) when is_list(kvs) do
+      %{insertion | sets: sets ++ kvs}
+    end
+
+    def set(insertion = %Update{sets: sets}, field, value) do
+      %{insertion | sets: sets ++ [{field, value}]}
+    end
+
+    def returning(insertion = %{returning: returning}, fields) do
+      %{insertion | returning: returning ++ fields}
     end
   end
 end

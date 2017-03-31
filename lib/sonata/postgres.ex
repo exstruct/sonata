@@ -407,8 +407,84 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
 end
 
 defimpl Sonata.Postgres, for: Sonata.Manipulation.Update do
-  def to_sql(%{}, opts, idx) do
-    {[], [], idx}
+  alias Sonata.Postgres, as: PG
+  import PG.Utils
+
+  def to_sql(update, opts, idx) do
+    {table, table_params, idx} = table(update.table, opts, idx)
+    {table_alias, table_alias_params, idx} = table_alias(update.table_alias, opts, idx)
+    {sets, sets_params, idx} = sets(update.sets, opts, idx)
+    {where, where_params, idx} = where(update.where, opts, idx)
+    {returning, returning_params, idx} = returning(update.returning, opts, idx)
+
+    {
+      join([
+        "UPDATE",
+        table,
+        table_alias,
+        sets,
+        where,
+        returning
+      ], " "),
+
+      Stream.concat([
+        table_params,
+        table_alias_params,
+        sets_params,
+        where_params,
+        returning_params
+      ]),
+
+      idx
+    }
+  end
+
+  defp table(table, _, idx) when table in [nil, false, ""] do
+    {nil, [], idx}
+  end
+  defp table(table, opts, idx) when is_binary(table) do
+    {escape_keyword(table), opts, idx}
+  end
+
+  defp table_alias(nil, _, idx) do
+    {nil, [], idx}
+  end
+  defp table_alias(alias, opts, idx) do
+    {[" AS ", escape_keyword(alias)], opts, idx}
+  end
+
+  defp sets(sets, _, idx) when sets in [nil, false, "", []] do
+    {nil, [], idx}
+  end
+  defp sets(sets, opts, idx) do
+    {sets, {params, idx}} = Enum.map_reduce(sets, {[], idx}, fn(set, {params, idx}) ->
+      {set, p, idx} = Sonata.Postgres.to_sql(set, opts, idx)
+      {set, {Stream.concat(params, p), idx}}
+    end)
+    {["SET ", Sonata.Postgres.Utils.join(sets, ", ")], params, idx}
+  end
+
+  defp where(nil, _, idx) do
+    {nil, [], idx}
+  end
+  defp where(expr, opts, idx) do
+    {where, params, idx} = PG.to_sql(expr, opts, idx)
+    {["WHERE ", where], params, idx}
+  end
+
+  defp returning(returning, _, idx) when returning in [nil, false, "", []] do
+    {nil, [], idx}
+  end
+  defp returning(returning, opts, idx) do
+    {returning, {params, idx}} = Enum.map_reduce(returning, {[], idx}, fn
+      ({column, alias}, {params, idx}) ->
+        {column, p, idx} = Sonata.Postgres.to_sql(column, opts, idx)
+        {[column, " AS ", alias], {Stream.concat(params, p), idx}}
+      (returning, {params, idx}) ->
+        {returning, p, idx} = Sonata.Postgres.to_sql(returning, opts, idx)
+        {returning, {Stream.concat(params, p), idx}}
+    end)
+    {["RETURNING ", returning], params, idx}
   end
 end
 

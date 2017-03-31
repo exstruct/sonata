@@ -9,7 +9,7 @@ defmodule Sonata.Manipulation do
     defstruct [table: nil,
                table_alias: nil,
                sets: [],
-               where: nil,
+               where: [],
                returning: []]
   end
 
@@ -41,6 +41,17 @@ defmodule Sonata.Manipulation do
 
     def set(insertion = %Update{sets: sets}, field, value) do
       %{insertion | sets: sets ++ [{field, value}]}
+    end
+
+    def where(insertion, kvs) when is_map(kvs) do
+      where(insertion, :maps.to_list(kvs))
+    end
+    def where(insertion = %Update{where: where}, kvs) when is_list(kvs) do
+      %{insertion | where: where ++ kvs}
+    end
+
+    def where(insertion = %Update{where: where}, field, value) do
+      %{insertion | where: where ++ [{field, value}]}
     end
 
     def returning(insertion = %{returning: returning}, fields) do

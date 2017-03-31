@@ -23,9 +23,12 @@ defprotocol Sonata.Postgres do
     def column(column, _, idx) when is_binary(column) do
       {escape_keyword(column), [], idx}
     end
+    def column(column, _, idx) when is_atom(column) do
+      {escape_keyword(Atom.to_string(column)), [], idx}
+    end
     def column({column, alias}, opts, idx) do
       {column, params, idx} = column(column, opts, idx)
-      {[column, " ", escape_keyword(alias)], params, idx}
+      {[column, " AS ", escape_keyword(alias)], params, idx}
     end
     def column(column, opts, idx) do
       Sonata.Postgres.to_sql(column, opts, idx)
@@ -248,6 +251,15 @@ defimpl Sonata.Postgres, for: [Sonata.Combination.Union, Sonata.Combination.Inte
   end
 end
 
+defimpl Sonata.Postgres, for: Sonata.Expr.ColumnList do
+  alias Sonata.Postgres, as: PG
+
+  def to_sql(%{columns: columns}, opts, idx) do
+    {sql, params, idx} = PG.Utils.columns(columns, opts, idx)
+    {["(", sql, ")"], params, idx}
+  end
+end
+
 defimpl Sonata.Postgres, for: Sonata.Expr.Operation do
   alias Sonata.Postgres, as: PG
 
@@ -439,6 +451,10 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Update do
     }
   end
 
+  def on_row(_, _) do
+    nil
+  end
+
   defp table(table, _, idx) when table in [nil, false, ""] do
     {nil, [], idx}
   end
@@ -457,9 +473,10 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Update do
     {nil, [], idx}
   end
   defp sets(sets, opts, idx) do
-    {sets, {params, idx}} = Enum.map_reduce(sets, {[], idx}, fn(set, {params, idx}) ->
-      {set, p, idx} = Sonata.Postgres.to_sql(set, opts, idx)
-      {set, {Stream.concat(params, p), idx}}
+    {sets, {params, idx}} = Enum.map_reduce(sets, {[], idx}, fn({field, value}, {params, idx}) ->
+      {field, p, idx} = Sonata.Postgres.to_sql(field, opts, idx)
+      {value, p, idx} = Sonata.Postgres.to_sql(value, opts, idx)
+      {[field, " = (", value, ")"], {Stream.concat(params, p), idx}}
     end)
     {["SET ", Sonata.Postgres.Utils.join(sets, ", ")], params, idx}
   end
@@ -476,15 +493,8 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Update do
     {nil, [], idx}
   end
   defp returning(returning, opts, idx) do
-    {returning, {params, idx}} = Enum.map_reduce(returning, {[], idx}, fn
-      ({column, alias}, {params, idx}) ->
-        {column, p, idx} = Sonata.Postgres.to_sql(column, opts, idx)
-        {[column, " AS ", alias], {Stream.concat(params, p), idx}}
-      (returning, {params, idx}) ->
-        {returning, p, idx} = Sonata.Postgres.to_sql(returning, opts, idx)
-        {returning, {Stream.concat(params, p), idx}}
-    end)
-    {["RETURNING ", returning], params, idx}
+    {sql, params, idx} = PG.Utils.columns(returning, opts, idx)
+    {["RETURNING ", sql], params, idx}
   end
 end
 

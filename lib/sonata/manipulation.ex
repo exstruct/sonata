@@ -9,7 +9,7 @@ defmodule Sonata.Manipulation do
     defstruct [table: nil,
                table_alias: nil,
                sets: [],
-               where: [],
+               where: nil,
                returning: []]
   end
 
@@ -32,26 +32,21 @@ defmodule Sonata.Manipulation do
       %Update{table: table, table_alias: table_alias}
     end
 
-    def set(insertion, kvs) when is_map(kvs) do
-      set(insertion, :maps.to_list(kvs))
-    end
-    def set(insertion = %Update{sets: sets}, kvs) when is_list(kvs) do
-      %{insertion | sets: sets ++ kvs}
-    end
-
-    def set(insertion = %Update{sets: sets}, field, value) do
-      %{insertion | sets: sets ++ [{field, value}]}
-    end
-
-    def where(insertion, kvs) when is_map(kvs) do
-      where(insertion, :maps.to_list(kvs))
-    end
-    def where(insertion = %Update{where: where}, kvs) when is_list(kvs) do
-      %{insertion | where: where ++ kvs}
+    def set(insertion = %Update{sets: sets}, kvs) do
+      %{insertion | sets: sets ++ Enum.map(kvs, fn
+        ({fields, value}) when is_list(fields) ->
+          {Sonata.Expr.column_list(fields), value}
+        ({fields, value}) when is_tuple(fields) ->
+          fields
+          |> :erlang.tuple_to_list()
+          |> Sonata.Expr.column_list()
+        ({field, value}) ->
+          {Sonata.Expr.column(field), value}
+      end)}
     end
 
-    def where(insertion = %Update{where: where}, field, value) do
-      %{insertion | where: where ++ [{field, value}]}
+    def set(insertion, field, value) do
+      set(insertion, [{field, value}])
     end
 
     def returning(insertion = %{returning: returning}, fields) do

@@ -78,15 +78,24 @@ defmodule Sonata.Query do
     #def cross_join()
     #def natural_join()
 
-    ## TODO support key: value
-    def where(q = %{where: where}, [{_, _} | _] = kvs) do
+    def where(q, field, operator, value) do
+      where(q, [{field, operator, value}])
+    end
+    def where(q = %{where: where}, [kv | _] = kvs) when is_tuple(kv) do
       where = Enum.reduce(kvs, where, fn
         ({k, v}, nil) ->
           Sonata.Expr.column(k)
           |> Sonata.Expr.=(v)
+        ({k, op, v}, nil) ->
+          col = Sonata.Expr.column(k)
+          apply(Sonata.Expr, op, [col, v])
         ({k, v}, acc) ->
           k = Sonata.Expr.column(k)
           Sonata.Expr.and(Sonata.Expr.=(k, v), acc)
+        ({k, op, v}, acc) ->
+          col = Sonata.Expr.column(k)
+          apply(Sonata.Expr, op, [col, v])
+          |> Sonata.Expr.and(acc)
       end)
       %{q | where: where}
     end

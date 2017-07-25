@@ -429,3 +429,9 @@ defimpl Sonata.Postgres, for: Sonata.Query.Value do
     {"$#{idx} #{as}", [value], idx + 1}
   end
 end
+
+defimpl Sonata.Postgres, for: Sonata.Expr.Value do
+  def to_sql(%{value: value}, _, idx) do
+    {"$#{idx}", [value], idx + 1}
+  end
+end

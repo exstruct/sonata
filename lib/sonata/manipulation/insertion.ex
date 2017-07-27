@@ -43,21 +43,31 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
     {Utils.escape(table), opts, idx}
   end
 
-  def fields(fields, _, idx) when fields in [nil, false, ""] do
+  def fields([], _, idx) do
+    {nil, [], idx}
+  end
+  def fields(fields, opts, idx) do
+    # TODO
     {nil, [], idx}
   end
 
-  def default_values(:true, opts, idx) do
-    {"DEFAULT VALUES", opts, idx}
+  def default_values(true, opts, idx) do
+    {"DEFAULT VALUES", [], idx}
   end
-
-  def rows(rows, _, idx) when rows in [nil, false, ""] do
+  def default_values(_, _, idx) do
     {nil, [], idx}
   end
-  # TODO
+
+  def rows([], _, idx) do
+    {nil, [], idx}
+  end
   def rows(rows, opts, idx) do
-    {["VALUES"] ++ rows, opts, idx}
-  end
+    {rows, params, idx} = Utils.list_to_sql(rows, opts, idx, &(&1), fn(row, opts, idx) ->
+      {row, params, idx} = Utils.list_to_sql(row, opts, idx)
+      {Utils.join(row, ", "), params, idx}
+    end)
+    {["VALUES (", Utils.join(rows, "), ("), ")"], params, idx}
+ end
 
   # TODO
   # defp on_conflict do

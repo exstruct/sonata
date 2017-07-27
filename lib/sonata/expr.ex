@@ -23,6 +23,10 @@ defmodule Sonata.Expr do
     %__MODULE__.Value{value: value}
   end
 
+  def default() do
+    %__MODULE__.Default{}
+  end
+
   defmacro op(lhs, name, rhs) when is_atom(name) do
     quote do
       Sonata.Operator.unquote(name)(unquote(lhs), unquote(rhs))

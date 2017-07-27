@@ -1,0 +1,6 @@
+%{"test should insert row": [%{"first_column" => "foo",
+     "second_column" => nil}],
+  "test should insert value other than default": [%{"first_column" => "foo",
+     "second_column" => 456}],
+  "test should insert with defaults": [%{"first_column" => "foo",
+     "second_column" => 123}], "test should return value after insert": :insert}

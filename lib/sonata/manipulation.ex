@@ -1,6 +1,9 @@
 defmodule Sonata.Manipulation do
   alias __MODULE__.{Insertion,Update}
 
+  alias Sonata.Expr
+  require Expr
+
   def insert_into(table) do
     %Insertion{table: table}
   end
@@ -16,13 +19,13 @@ defmodule Sonata.Manipulation do
 
   # TODO: support `INSERT INTO foo (valA, valB) VALUES (SELECT ...)`
   def values(insertion = %{rows: rows}, [first | _ ] = values) when is_list(first) do
-    %{insertion | rows: Enum.into(rows, values)}
+    %{insertion | rows: rows ++ values}
   end
-  def values(insertion = %{rows: rows}, values) when is_list(values) do
-    %{insertion | rows: Enum.into(rows, [values])}
+  def values(insertion, values) when is_list(values) do
+    values(insertion, [values])
   end
 
-  def default_values(insertion = %{default_values: _}) do
+  def default_values(insertion) do
     %{insertion | default_values: :true}
   end
 
@@ -34,16 +37,16 @@ defmodule Sonata.Manipulation do
     %Update{table: table, table_alias: table_alias}
   end
 
-  def set(insertion = %Update{sets: sets}, kvs) do
+  def set(insertion = %{sets: sets}, kvs) do
     %{insertion | sets: sets ++ Enum.map(kvs, fn
       ({fields, value}) when is_list(fields) ->
-        {Sonata.Expr.column_list(fields), value}
+        Expr.op(Sonata.Expr.column_list(fields) = value)
       ({fields, _value}) when is_tuple(fields) ->
         fields
         |> :erlang.tuple_to_list()
         |> Sonata.Expr.column_list()
       ({field, value}) ->
-        {Sonata.Expr.column(field), value}
+        Expr.op(Sonata.Expr.column(field) = value)
     end)}
   end
 
@@ -54,5 +57,17 @@ defmodule Sonata.Manipulation do
   # TODO: support returning alias
   def returning(insertion = %{returning: returning}, fields) do
     %{insertion | returning: returning ++ fields}
+  end
+
+  def on_conflict(m, behavior) do
+    m
+  end
+
+  def do_update() do
+    %{sets: []}
+  end
+
+  def do_nothing() do
+    :DO_NOTHING
   end
 end

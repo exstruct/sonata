@@ -56,9 +56,9 @@ defmodule Sonata.Postgres.Utils do
     |> join(delim)
   end
 
-  def list_to_sql(list, opts, idx, mapper \\ &(&1)) do
+  def list_to_sql(list, opts, idx, mapper \\ &(&1), to_sql \\ &PG.to_sql/3) do
     {sql, {params, idx}} = Enum.map_reduce(list, {[], idx}, fn(item, {acc_params, idx}) ->
-      {sql, params, idx} = PG.to_sql(item, opts, idx)
+      {sql, params, idx} = to_sql.(item, opts, idx)
       {mapper.(sql), {Stream.concat(acc_params, params), idx}}
     end)
     {sql, params, idx}

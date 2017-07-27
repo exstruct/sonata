@@ -1,5 +1,5 @@
 defmodule Sonata.Expr.Call do
-  defstruct [:name, :arguments]
+  defstruct [name: nil, arguments: []]
 end
 
 defimpl Sonata.Postgres, for: Sonata.Expr.Call do

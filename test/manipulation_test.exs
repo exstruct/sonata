@@ -37,7 +37,7 @@ defmodule Test.Sonata.Manipulation do
         column(:first_column, "text"),
         column(:second_column, "integer")
         |> default(123)
-      ])
+      ]),
 
       insert_into("my_first_table")
       |> fields([:first_column, :second_column])
@@ -85,10 +85,10 @@ defmodule Test.Sonata.Manipulation do
         column(:id, "serial")
         |> unique(),
         column(:value, "integer")
-      ])
+      ]),
 
       insert_into("my_first_table")
-      |> values([1, 123])
+      |> values([1, 123]),
 
       insert_into("my_first_table")
       |> values([1, 456])
@@ -109,10 +109,10 @@ defmodule Test.Sonata.Manipulation do
         column(:id, "serial")
         |> unique(),
         column(:value, "integer")
-      ])
+      ]),
 
       insert_into("my_first_table")
-      |> values([1, 123])
+      |> values([1, 123]),
 
       insert_into("my_first_table")
       |> values([1, 456])

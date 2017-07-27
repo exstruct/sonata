@@ -2,7 +2,7 @@ defmodule Sonata.CreateTable do
   defstruct [table: nil,
              add_columns: [],
              checks: [],
-             references: [],
+             foreign_keys: [],
              primary_key: nil,
              constraints: [],
              unique: [],
@@ -48,11 +48,13 @@ defmodule Sonata.CreateTable do
     %{d | primary_key: key}
   end
 
-  def references(%{references: references} = d, r) when is_list(r) do
-    %{d | references: references ++ r}
-  end
-  def references(d, r) do
-    references(d, [r])
+  def foreign_key(%{foreign_keys: foreign_keys} = d, cols, table, table_cols) do
+    fk = Sonata.Definition.ForeignKey.new(
+      cols,
+      table,
+      table_cols
+    )
+    %{d | foreign_keys: [fk | foreign_keys]}
   end
 
   def if_not_exists(d) do
@@ -110,6 +112,7 @@ defimpl Sonata.Postgres, for: Sonata.CreateTable do
 
     {checks, checks_params, idx} = checks(ct.checks, opts, idx)
     {primary_key, primary_key_params, idx} = primary_key(ct.primary_key, opts, idx)
+    {foreign_keys, foreign_keys_params, idx} = foreign_keys(ct.foreign_keys, opts, idx)
     {unique, unique_params, idx} = unique(ct.unique, opts, idx)
 
     {
@@ -121,6 +124,7 @@ defimpl Sonata.Postgres, for: Sonata.CreateTable do
           columns,
           checks,
           primary_key,
+          foreign_keys,
           unique,
         ]), ", "),
         ");"
@@ -130,6 +134,7 @@ defimpl Sonata.Postgres, for: Sonata.CreateTable do
         params,
         checks_params,
         primary_key_params,
+        foreign_keys_params,
         unique_params,
       ]),
 
@@ -152,6 +157,13 @@ defimpl Sonata.Postgres, for: Sonata.CreateTable do
   defp primary_key(primary_key, opts, idx) do
     {sql, params, idx} = PG.to_sql(primary_key, opts, idx)
     {[["PRIMARY KEY ", sql]], params, idx}
+  end
+
+  defp foreign_keys([], _, idx) do
+    {[], [], idx}
+  end
+  defp foreign_keys(foreign_keys, opts, idx) do
+    Utils.list_to_sql(foreign_keys, opts, idx)
   end
 
   defp unique([], _, idx) do

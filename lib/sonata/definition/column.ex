@@ -23,12 +23,22 @@ defmodule Sonata.Definition.Column do
     Sonata.Builder.Check.check(column, name, expr)
   end
 
-  def references(column, table) do
-    %{column | reference: table}
-  end
-
   def primary_key(column) do
     %{column | primary_key: true}
+  end
+
+  def references(column, table, columns \\ nil)
+  def references(column, table, columns) when is_list(columns) do
+    columns = Sonata.Expr.column_list(columns)
+    references(column, table, columns)
+  end
+  def references(column, table, col)
+    when is_atom(col) and not is_nil(col)
+      or is_binary(col) do
+    references(column, table, [col])
+  end
+  def references(column, table, columns) do
+    %{column | reference: {table, columns}}
   end
 
   def constraint(column, name, expr) do
@@ -207,11 +217,12 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
   defp reference(nil, _, idx) do
     {nil, [], idx}
   end
-  defp reference({column, table}, _, idx) do
-    {["REFERENCES ", to_string(table), " (", to_string(column), ")"], [], idx}
+  defp reference({table, nil}, _, idx) do
+    {["REFERENCES ", Utils.escape(table)], [], idx}
   end
-  defp reference(table, _, idx) when is_binary(table) or is_atom(table) do
-    {["REFERENCES ", to_string(table)], [], idx}
+  defp reference({table, columns}, opts, idx) do
+    {columns, params, idx} = PG.to_sql(columns, opts, idx)
+    {["REFERENCES ", Utils.escape(table), " ", columns], params, idx}
   end
 
   defp primary_key(true, _, idx) do

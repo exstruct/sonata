@@ -12,7 +12,8 @@ defmodule Sonata do
         Function,
         Manipulation,
         OrderBy,
-        Query
+        Query,
+        Transaction,
       }
     end
   end

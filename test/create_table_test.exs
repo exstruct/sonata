@@ -2,14 +2,14 @@ defmodule Test.Sonata.CreateTable do
   use Test.Sonata
 
   test "my_first_table" do
-    create_table("my_first_table")
+    create_table(:my_first_table)
     |> add_column(:first_column, "text")
     |> add_column(:second_column, "integer")
     |> assert_sql(table_info("my_first_table"))
   end
 
   test "products" do
-    create_table("pro\\ducts")
+    create_table(:"pro\\ducts")
     |> add_column(:product_no, "integer")
     |> add_column(:name, "text")
     |> add_column(:price, "numeric")
@@ -17,7 +17,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "default products" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:product_no, "integer"),
       column(:name, "text"),
@@ -28,7 +28,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "default product no" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:product_no, "integer")
       |> default(random()),
@@ -37,7 +37,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "products SERIAL" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:product_no, "SERIAL")
     ])
@@ -45,7 +45,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "products CHECK price > 0" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:product_no, "integer"),
       column(:name, "text"),
@@ -61,7 +61,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "products named CHECK" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:product_no, "integer"),
       column(:name, "text"),
@@ -78,7 +78,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "products CHECK operator" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:product_no, "integer"),
       column(:name, "text"),
@@ -92,7 +92,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "table-wide checks" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:product_no, "integer"),
       column(:name, "text"),
@@ -113,7 +113,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "not null" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:product_no, "integer")
       |> not_null(),
@@ -130,7 +130,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "unique" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:product_no, "integer")
       |> unique(),
@@ -145,7 +145,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "unique multiple" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:a, "integer"),
       column(:b, "integer"),
@@ -159,7 +159,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "primary key" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:product_no, "integer")
       |> primary_key(),
@@ -174,7 +174,7 @@ defmodule Test.Sonata.CreateTable do
   end
 
   test "primary key multiple" do
-    create_table("products")
+    create_table(:products)
     |> add_column([
       column(:a, "integer"),
       column(:b, "integer"),
@@ -185,6 +185,72 @@ defmodule Test.Sonata.CreateTable do
     (1, 2),
     (1, 2);
     """, :unique_violation)
+  end
+
+  test "references pk" do
+    [
+      create_table(:products)
+      |> add_column([
+        column(:product_no, "integer")
+        |> primary_key(),
+      ]),
+
+      create_table(:orders)
+      |> add_column([
+        column(:order_id, "integer")
+        |> primary_key(),
+        column(:product_no, "integer")
+        |> references(:products),
+      ])
+    ]
+    |> assert_sql_error("""
+    INSERT INTO orders VALUES
+    (1, 1);
+    """, :foreign_key_violation)
+  end
+
+  test "references explicit" do
+    [
+      create_table(:products)
+      |> add_column([
+        column(:product_no, "integer")
+        |> primary_key(),
+      ]),
+
+      create_table(:orders)
+      |> add_column([
+        column(:order_id, "integer")
+        |> primary_key(),
+        column(:product_no, "integer")
+        |> references(:products, :product_no),
+      ])
+    ]
+    |> assert_sql_error("""
+    INSERT INTO orders VALUES
+    (1, 1);
+    """, :foreign_key_violation)
+  end
+
+  test "foreign key" do
+    [
+      create_table(:other_table)
+      |> add_column([
+        column(:c1, "integer"),
+        column(:c2, "integer"),
+      ])
+      |> primary_key([:c1, :c2]),
+
+      create_table(:t1)
+      |> add_column([
+        column(:a, "integer"),
+        column(:b, "integer"),
+      ])
+      |> foreign_key([:a, :b], :other_table, [:c1, :c2])
+    ]
+    |> assert_sql_error("""
+    INSERT INTO t1 VALUES
+    (1, 1);
+    """, :foreign_key_violation)
   end
 
   defp table_info(name) do

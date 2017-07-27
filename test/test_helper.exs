@@ -20,7 +20,7 @@ defmodule Test.Sonata do
 
   defp load_snapshot(path) do
     {contents, []} = Code.eval_file(path)
-    contents
+    contents || %{}
   rescue
     Code.LoadError ->
       %{}
@@ -71,12 +71,7 @@ defmodule Test.Sonata do
 
   defmacro assert_sql(struct, command) do
     quote do
-      {sql, params, _on_row} = Sonata.to_sql(unquote(struct))
-      sql = :erlang.iolist_to_binary(sql)
-
-      # IO.puts sql
-
-      Ecto.Adapters.SQL.query!(Repo, sql, params)
+      query!(unquote(struct))
 
       result = Ecto.Adapters.SQL.query!(Repo, unquote(command))
       |> postgrex_result()
@@ -87,12 +82,7 @@ defmodule Test.Sonata do
 
   defmacro assert_sql_error(struct, command, code) do
     quote do
-      {sql, params, _on_row} = Sonata.to_sql(unquote(struct))
-      sql = :erlang.iolist_to_binary(sql)
-
-      # IO.puts sql
-
-      Ecto.Adapters.SQL.query!(Repo, sql, params)
+      query!(unquote(struct))
 
       error = assert_raise Postgrex.Error, fn ->
         Ecto.Adapters.SQL.query!(Repo, unquote(command))
@@ -110,17 +100,27 @@ defmodule Test.Sonata do
 
   defmacro assert_snapshot(struct) do
     quote do
-      {sql, params, on_row} = Sonata.to_sql(unquote(struct))
-      sql = :erlang.iolist_to_binary(sql)
-
-      # IO.puts sql
-
-      result = Ecto.Adapters.SQL.query!(Repo, sql, params)
+      {response, on_row} = query!(unquote(struct))
+      result = response
       |> postgrex_result()
       |> Enum.map(on_row)
 
       record_result(__MODULE__, result)
     end
+  end
+
+  def query!(structs) when is_list(structs) do
+    Repo.transaction fn ->
+      Enum.each(structs, &query!/1)
+    end
+  end
+  def query!(struct) do
+    {sql, params, on_row} = Sonata.to_sql(struct)
+    sql = :erlang.iolist_to_binary(sql)
+
+    IO.puts sql
+
+    {Ecto.Adapters.SQL.query!(Repo, sql, params), on_row}
   end
 
   def record_result(module, result) do

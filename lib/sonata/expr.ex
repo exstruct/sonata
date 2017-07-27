@@ -44,20 +44,15 @@ defmodule Sonata.Expr do
     end
   end
 
-  alias Sonata.Expr.Operator
+  alias Sonata.Expr.{
+    Operator,
+    UnaryOperator,
+  }
 
   keywords = [
     :and,
     :is_distinct_from,
     :is_not_distinct_from,
-    :is_null,
-    :is_not_null,
-    :is_true,
-    :is_not_true,
-    :is_false,
-    :is_not_false,
-    :is_unknown,
-    :is_not_unknown,
     :like,
     :not_like,
     :ilike,
@@ -89,7 +84,22 @@ defmodule Sonata.Expr do
     }
   end
 
-  def not(rhs) do
-    %Sonata.Expr.UnaryOperator{operator: "NOT", rhs: rhs}
+  unary = [
+    :not,
+    :is_null,
+    :is_not_null,
+    :is_true,
+    :is_not_true,
+    :is_false,
+    :is_not_false,
+    :is_unknown,
+    :is_not_unknown,
+  ]
+
+  for keyword <- unary do
+    keyword_s = keyword |> to_string() |> String.upcase() |> String.replace("_", " ")
+    def unquote(keyword)(rhs) do
+      %UnaryOperator{operator: unquote(keyword_s), rhs: rhs}
+    end
   end
 end

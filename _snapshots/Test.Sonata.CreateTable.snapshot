@@ -1,0 +1,6 @@
+%{"test my_first_table": [%{"column_name" => "first_column",
+     "data_type" => "text"},
+   %{"column_name" => "second_column", "data_type" => "integer"}],
+  "test products": [%{"column_name" => "product_no", "data_type" => "integer"},
+   %{"column_name" => "name", "data_type" => "text"},
+   %{"column_name" => "price", "data_type" => "numeric"}]}

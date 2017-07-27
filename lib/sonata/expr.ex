@@ -1,49 +1,25 @@
 defmodule Sonata.Expr do
-  defmodule Operation do
-    defstruct [:operator, :rhs, :lhs]
+  def call(name) do
+    %__MODULE__.Call{name: name}
   end
 
-  defmodule Reference do
-    defstruct [:name]
-  end
-
-  defmodule Value do
-    defstruct [:value]
-  end
-
-  def unquote(:=)(lhs, rhs) do
-    %Operation{operator: "=", lhs: lhs, rhs: rhs}
-  end
-
-  def unquote(:>)(lhs, rhs) do
-    %Operation{operator: ">", lhs: lhs, rhs: rhs}
-  end
-
-  def unquote(:<)(lhs, rhs) do
-    %Operation{operator: "<", lhs: lhs, rhs: rhs}
-  end
-
-  def unquote(:>=)(lhs, rhs) do
-    %Operation{operator: ">=", lhs: lhs, rhs: rhs}
-  end
-
-  def unquote(:<=)(lhs, rhs) do
-    %Operation{operator: "<=", lhs: lhs, rhs: rhs}
-  end
-
-  def unquote(:and)(lhs, rhs) do
-    %Operation{operator: "AND", lhs: lhs, rhs: rhs}
+  def call(name, arguments) do
+    %__MODULE__.Call{name: name, arguments: arguments}
   end
 
   def column(name) do
-    %Reference{name: name}
+    %__MODULE__.Reference{name: name}
+  end
+
+  def column_list(columns) do
+    %__MODULE__.ColumnList{columns: columns}
   end
 
   def table(name) do
-    %Reference{name: name}
+    %__MODULE__.Reference{name: name}
   end
 
   def value(value) do
-    %Value{value: value}
+    %__MODULE__.Value{value: value}
   end
 end

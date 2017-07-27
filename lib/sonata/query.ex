@@ -56,10 +56,14 @@ defmodule Sonata.Query do
     %{q | from: {from, alias}}
   end
 
+  # TODO
+  def count(q, {column, alias}) do
+  end
+
   ## TODO add support for join
-  ## def join(q) do
-  ##
-  ## end
+  def join(q, table, on) do
+
+  end
 
   #def join() -> inner_join()
   #def inner_join()

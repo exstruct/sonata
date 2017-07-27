@@ -111,9 +111,7 @@ defmodule Test.Sonata do
 
   require Logger
   def query!(structs) when is_list(structs) do
-    Repo.transaction fn ->
-      Enum.each(structs, &query!/1)
-    end
+    Enum.each(structs, &query!/1)
   end
   def query!(struct) do
     {sql, params, on_row} = Sonata.to_sql(struct)
@@ -121,7 +119,9 @@ defmodule Test.Sonata do
 
     Logger.debug(sql)
 
-    {Ecto.Adapters.SQL.query!(Repo, sql, params), on_row}
+    result = Ecto.Adapters.SQL.query!(Repo, sql, params)
+
+    {result, on_row}
   end
 
   def record_result(module, result) do

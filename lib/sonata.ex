@@ -2,10 +2,17 @@ defmodule Sonata do
   defmacro __using__(_) do
     quote do
       import Sonata.{
+        AlterTable,
+        Builder,
+        Combination,
         CreateTable,
+        DropTable,
         Definition.Column,
         Expr,
-        Function
+        Function,
+        Manipulation,
+        OrderBy,
+        Query
       }
     end
   end

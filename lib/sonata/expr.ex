@@ -23,7 +23,18 @@ defmodule Sonata.Expr do
     %__MODULE__.Value{value: value}
   end
 
+  defmacro op(lhs, name, rhs) when is_atom(name) do
+    quote do
+      Sonata.Operator.unquote(name)(unquote(lhs), unquote(rhs))
+    end
+  end
   defmacro op(lhs, name, rhs) do
+    quote do
+      apply(Sonata.Operator, unquote(name), [unquote(lhs), unquote(rhs)])
+    end
+  end
+
+  defmacro op({name, _, [lhs, rhs]}) when is_atom(name) do
     quote do
       Sonata.Operator.unquote(name)(unquote(lhs), unquote(rhs))
     end

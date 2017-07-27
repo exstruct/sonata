@@ -8,7 +8,7 @@ end
 
 defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
   alias Sonata.Postgres, as: PG
-  import PG.Utils
+  alias PG.Utils
 
   def to_sql(insertion, opts, idx) do
     {table, table_params, idx} = table(insertion.table, opts, idx)
@@ -17,7 +17,7 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
     {rows, rows_params, idx} = rows(insertion.rows, opts, idx)
 
     {
-      join([
+      Utils.join([
         "INSERT INTO",
         table,
         fields,
@@ -40,7 +40,7 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
     {nil, [], idx}
   end
   defp table(table, opts, idx) when is_binary(table) do
-    {escape_keyword(table), opts, idx}
+    {Utils.escape(table), opts, idx}
   end
 
   def fields(fields, _, idx) when fields in [nil, false, ""] do

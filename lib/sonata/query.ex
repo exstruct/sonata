@@ -11,13 +11,19 @@ defmodule Sonata.Query do
              offset: nil,
              struct: nil]
 
+  alias Sonata.Builder.Column
+
   def select() do
     %__MODULE__{}
   end
 
   def select(columns) do
     select()
-    |> column(columns)
+    |> Column.column(columns)
+  end
+
+  def column(q, c, alias) do
+    Column.column(q, [{c, alias}])
   end
 
   def distinct(q) do
@@ -33,21 +39,11 @@ defmodule Sonata.Query do
     distinct(q, [d])
   end
 
-  def column(%{columns: columns} = q, c) when is_list(c) do
-    %{q | columns: columns ++ c}
-  end
-  def column(q, c) do
-    column(q, [c])
-  end
-  def column(q, c, alias) do
-    column(q, [{c, alias}])
-  end
-
   def value(q, value, as \\ nil) do
     value = %__MODULE__.Value{value: value}
     cond do
       is_nil(as) ->
-        column(q, value)
+        Column.column(q, value)
       true ->
         column(q, value, as)
     end
@@ -124,15 +120,24 @@ defmodule Sonata.Query do
   def into_struct(q, struct) do
     %{q | struct: struct}
   end
+
+  defimpl Column do
+    def column(%{columns: columns} = q, c) when is_list(c) do
+      %{q | columns: columns ++ c}
+    end
+    def column(q, c) do
+      column(q, [c])
+    end
+  end
 end
 
 defimpl Sonata.Postgres, for: Sonata.Query do
   alias Sonata.Postgres, as: PG
-  import PG.Utils
+  alias PG.Utils
 
   def to_sql(query, opts, idx) do
     {distinct, distinct_params, idx} = distinct(query.distinct, opts, idx)
-    {columns, column_params, idx} = columns(query.columns, opts, idx)
+    {columns, column_params, idx} = Utils.columns(query.columns, opts, idx)
     {from, from_params, idx} = from(query.from, opts, idx)
     {where, where_params, idx} = where(query.where, opts, idx)
     {group_by, group_by_params, idx} = group_by(query.group_by, opts, idx)
@@ -142,7 +147,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
     {offset, offset_params, idx} = offset(query.offset, opts, idx)
 
     {
-      join([
+      Utils.join([
         "SELECT",
         distinct,
         columns,
@@ -185,7 +190,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
     {"DISTINCT", [], idx}
   end
   defp distinct(distinct, opts, idx) when is_list(distinct) do
-    {columns, params, idx} = columns(distinct, opts, idx)
+    {columns, params, idx} = Utils.columns(distinct, opts, idx)
     {["DISTINCT ON (", columns, ")"], params, idx}
   end
 
@@ -193,7 +198,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
     {nil, [], idx}
   end
   defp from(from, _, idx) when is_binary(from) do
-    {["FROM ", escape_keyword(from)], [], idx}
+    {["FROM ", Utils.escape(from)], [], idx}
   end
   defp from({from, alias}, opts, idx) do
     {from, params, idx} = from(from, opts, idx)
@@ -216,7 +221,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
     {nil, [], idx}
   end
   defp group_by(columns, opts, idx) do
-    {columns, params} = columns(columns, opts, idx)
+    {columns, params} = Utils.columns(columns, opts, idx)
     {["GROUP BY ", columns], params, idx}
   end
 
@@ -232,7 +237,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
     {nil, [], idx}
   end
   defp order_by(columns, opts, idx) do
-    {columns, params, idx} = columns(columns, opts, idx)
+    {columns, params, idx} = Utils.columns(columns, opts, idx)
     {["ORDER BY ", columns], params, idx}
   end
 

@@ -1,5 +1,6 @@
 defmodule Sonata.Postgres.Utils do
-  import Kernel
+  alias Sonata.Postgres, as: PG
+
   def columns([], _, idx) do
     {"*", [], idx}
   end
@@ -12,17 +13,17 @@ defmodule Sonata.Postgres.Utils do
   end
 
   def column(column, _, idx) when is_binary(column) do
-    {escape_keyword(column), [], idx}
+    {escape(column), [], idx}
   end
   def column(column, _, idx) when is_atom(column) do
-    {escape_keyword(Atom.to_string(column)), [], idx}
+    {escape(Atom.to_string(column)), [], idx}
   end
   def column({column, alias}, opts, idx) do
     {column, params, idx} = column(column, opts, idx)
-    {[column, " AS ", escape_keyword(alias)], params, idx}
+    {[column, " AS ", escape(alias)], params, idx}
   end
   def column(column, opts, idx) do
-    Sonata.Postgres.to_sql(column, opts, idx)
+    PG.to_sql(column, opts, idx)
   end
 
   def pop_comma({columns, params, idx}) do
@@ -49,8 +50,26 @@ defmodule Sonata.Postgres.Utils do
         [item, delim, rest]
     end
   end
+  def join(stream, delim) do
+    stream
+    |> Enum.to_list()
+    |> join(delim)
+  end
 
-  def escape_keyword(value) do
-    to_string(value)
+  def list_to_sql(list, opts, idx) do
+    {sql, {params, idx}} = Enum.map_reduce(list, {[], idx}, fn(item, {acc_params, idx}) ->
+      {sql, params, idx} = PG.to_sql(item, opts, idx)
+      {sql, {Stream.concat(acc_params, params), idx}}
+    end)
+    {sql, params, idx}
+  end
+
+  def escape(value) when is_binary(value) do
+    "\"" <> String.replace(value, "\"", "\"\"") <> "\""
+  end
+  def escape(value) when is_atom(value) do
+    value
+    |> Atom.to_string()
+    |> escape()
   end
 end

@@ -8,7 +8,7 @@ end
 
 defimpl Sonata.Postgres, for: Sonata.Manipulation.Update do
   alias Sonata.Postgres, as: PG
-  import PG.Utils
+  alias PG.Utils
 
   def to_sql(update, opts, idx) do
     {table, table_params, idx} = table(update.table, opts, idx)
@@ -18,7 +18,7 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Update do
     {returning, returning_params, idx} = returning(update.returning, opts, idx)
 
     {
-      join([
+      Utils.join([
         "UPDATE",
         table,
         table_alias,
@@ -47,14 +47,14 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Update do
     {nil, [], idx}
   end
   defp table(table, opts, idx) when is_binary(table) do
-    {escape_keyword(table), opts, idx}
+    {Utils.escape(table), opts, idx}
   end
 
   defp table_alias(nil, _, idx) do
     {nil, [], idx}
   end
   defp table_alias(alias, opts, idx) do
-    {[" AS ", escape_keyword(alias)], opts, idx}
+    {[" AS ", Utils.escape(alias)], opts, idx}
   end
 
   defp sets(sets, _, idx) when sets in [nil, false, "", []] do

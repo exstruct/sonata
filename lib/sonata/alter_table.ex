@@ -1,7 +1,7 @@
 defmodule Sonata.AlterTable do
-  use Sonata.Definition
+  defstruct [table: nil]
 
   def alter_table(table) do
-    %Sonata.AlterTable{table: table}
+    %__MODULE__{table: table}
   end
 end

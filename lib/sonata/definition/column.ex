@@ -15,51 +15,12 @@ defmodule Sonata.Definition.Column do
              deferrable: false,
              initially: nil,]
 
-  defmodule Check do
-    defstruct [
-      name: nil,
-      expr: nil,
-      inherit: true,
-    ]
-  end
+  require Sonata.Expr
 
-  def column(name, type) do
-    %__MODULE__{name: name, type: type}
-  end
-
-  def check(column, name \\ nil, expr) do
-    merge_check(column, %Check{
-      name: name,
-      expr: expr,
-    })
-  end
-
-  def check_no_inherit(column, name \\ nil, expr) do
-    merge_check(column, %Check{
-      name: name,
-      expr: expr,
-      inherit: false,
-    })
-  end
-
-  defp merge_check(%{check: nil} = column, check) do
-    %{column | check: check}
-  end
-  defp merge_check(%{
-    check: %{
-      expr: e,
-      name: n,
-      inherit: i
-    }
-  } = column, %{
-    inherit: i,
-    expr: expr,
-  } = check) do
-    %{column | check: %Check{
-      name: n,
-      expr: Sonata.Expr.and(e, expr),
-      inherit: i,
-    }}
+  def check_op(%{name: col} = column, name \\ nil, op, rhs) do
+    col = Sonata.Expr.column(col)
+    expr = Sonata.Expr.op(col, op, rhs)
+    Sonata.Builder.Check.check(column, name, expr)
   end
 
   def references(column, table) do
@@ -134,11 +95,48 @@ defmodule Sonata.Definition.Column do
   def initially_immediate(column) do
     %{column | initially: :immediate}
   end
+
+  defimpl Sonata.Builder.Check do
+    alias Sonata.Definition.Check
+
+    def check(column, name, expr) do
+      merge_check(column, %Check{
+        name: name,
+        expr: expr,
+      })
+    end
+
+    defp merge_check(%{check: nil} = column, check) do
+      %{column | check: check}
+    end
+    defp merge_check(%{
+      check: %{
+        expr: e,
+        name: n,
+        inherit: i
+      }
+    } = column, %{
+      inherit: i,
+      expr: expr,
+    } = check) do
+      %{column | check: %Check{
+        name: n,
+        expr: Sonata.Expr.and(e, expr),
+        inherit: i,
+      }}
+    end
+  end
+end
+
+defimpl Sonata.Builder.Column, for: [Atom, Bitstring] do
+  def column(name, type) do
+    %Sonata.Definition.Column{name: name, type: type}
+  end
 end
 
 defimpl Sonata.Postgres, for: Sonata.Definition.Column do
   alias Sonata.Postgres, as: PG
-  import PG.Utils
+  alias PG.Utils
 
   def to_sql(column, opts, idx) do
     {name, name_params, idx} = name(column.name, opts, idx)
@@ -152,7 +150,7 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
     {null, null_params, idx} = null(column.null, opts, idx)
 
     {
-      join([
+      Utils.join([
         name,
         type,
         check,
@@ -188,14 +186,15 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
     {nil, [], idx}
   end
   defp name(name, _, idx) do
-    {to_string(name), [], idx}
+    {Utils.escape(name), [], idx}
   end
 
   defp type(nil, _, idx) do
     {nil, [], idx}
   end
   defp type(type, _, idx) do
-    {to_string(type), [], idx}
+    [type | _] = type |> to_string() |> String.split(" ")
+    {type, [], idx}
   end
 
   defp check(nil, _, idx) do
@@ -250,27 +249,5 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
   defp default(default, opts, idx) do
     {default, params, idx} = PG.to_sql(default, opts, idx)
     {["DEFAULT ", default], params, idx}
-  end
-end
-
-defimpl Sonata.Postgres, for: Sonata.Definition.Column.Check do
-  alias Sonata.Postgres, as: PG
-  import PG.Utils
-
-  def to_sql(%{name: name, expr: expr, inherit: inherit}, opts, idx) do
-    {expr, params, idx} = PG.to_sql(expr, opts, idx)
-    {[name(name), "CHECK ", expr], params, idx}
-  end
-
-  defp name(nil) do
-    ""
-  end
-  defp name(name) do
-    # TODO escape
-    ["CONSTRAINT ", name, " "]
-  end
-
-  def on_row(_, _) do
-    nil
   end
 end

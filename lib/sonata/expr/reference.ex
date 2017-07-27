@@ -3,9 +3,10 @@ defmodule Sonata.Expr.Reference do
 end
 
 defimpl Sonata.Postgres, for: Sonata.Expr.Reference do
+  alias Sonata.Postgres.Utils
+
   def to_sql(%{name: name}, _, idx) do
-    # TODO escape the reference name
-    {to_string(name), [], idx}
+    {Utils.escape(name), [], idx}
   end
 
   def on_row(_, _) do

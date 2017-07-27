@@ -19,13 +19,13 @@ defmodule Sonata.Combination do
 
   for {call, struct} <- structs do
     def unquote(call)(lhs, rhs) when is_function(rhs) do
-      unquote(call)(lhs, rhs.())
+      %unquote(struct){lhs: lhs, rhs: rhs.()}
     end
     def unquote(call)(lhs, rhs) do
       %unquote(struct){lhs: lhs, rhs: rhs}
     end
     def unquote(:"#{call}_all")(lhs, rhs) when is_function(rhs) do
-      unquote(:"#{call}_all")(lhs, rhs.())
+      %unquote(struct){lhs: lhs, rhs: rhs.(), all: true}
     end
     def unquote(:"#{call}_all")(lhs, rhs) do
       %unquote(struct){lhs: lhs, rhs: rhs, all: true}

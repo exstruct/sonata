@@ -1,13 +1,19 @@
 defmodule Sonata.Expr.UnaryOperator do
-  defstruct [:operator, :rhs]
+  defstruct [:operator, :subject, :inverted]
 end
 
 defimpl Sonata.Postgres, for: Sonata.Expr.UnaryOperator do
   alias Sonata.Postgres, as: PG
 
-  def to_sql(%{operator: operator, rhs: rhs}, opts, idx) do
-    {rhs, rhs_params, idx} = PG.to_sql(rhs, opts, idx)
-    {["(", operator, " ", rhs, ")"], rhs_params, idx}
+  def to_sql(%{operator: operator, subject: subject, inverted: inverted}, opts, idx) do
+    {subject, params, idx} = PG.to_sql(subject, opts, idx)
+    sql =
+      if inverted do
+        [operator, " ", subject]
+      else
+        [subject, " ", operator]
+      end
+    {["(", sql, ")"], params, idx}
   end
 
   def on_row(_, _) do

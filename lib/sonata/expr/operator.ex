@@ -6,7 +6,14 @@ defimpl Sonata.Postgres, for: Sonata.Expr.Operator do
   alias Sonata.Postgres, as: PG
 
   def to_sql(%{operator: operator, rhs: rhs, lhs: lhs}, opts, idx) do
-    {parens, opts} = Map.pop(opts, :parens)
+    {parens, opts} =
+      case operator do
+        op when op in ["BETWEEN", "NOT BETWEEN"] ->
+          {Map.get(opts, :parens), Map.put(opts, :parens, false)}
+        _ ->
+          Map.pop(opts, :parens)
+      end
+
     {lhs, lhs_params, idx} = PG.to_sql(lhs, opts, idx)
     {rhs, rhs_params, idx} = PG.to_sql(rhs, opts, idx)
     sql = [lhs, " ", operator, " ", rhs]

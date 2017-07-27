@@ -18,10 +18,10 @@ defmodule Sonata.Manipulation do
   end
 
   # TODO: support `INSERT INTO foo (valA, valB) VALUES (SELECT ...)`
-  def values(insertion = %{rows: rows}, [first | _ ] = values) when is_list(first) do
+  def values(insertion = %{rows: rows}, [first | _ ] = values) when is_tuple(first) do
     %{insertion | rows: rows ++ values}
   end
-  def values(insertion, values) when is_list(values) do
+  def values(insertion, values) when is_tuple(values) do
     values(insertion, [values])
   end
 

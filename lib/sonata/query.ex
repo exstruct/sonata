@@ -56,8 +56,8 @@ defmodule Sonata.Query do
     %{q | from: {from, alias}}
   end
 
-  # TODO
-  def count(q, {column, alias}) do
+  def as(field, alias) do
+    {field, alias}
   end
 
   ## TODO add support for join
@@ -76,7 +76,7 @@ defmodule Sonata.Query do
   def where(q, field, operator, value) do
     where(q, [{field, operator, value}])
   end
-  def where(q = %{where: where}, [kv | _] = kvs) when is_tuple(kv) do
+  def where(%{where: where} = q, kvs) when is_list(kvs) do
     where = Enum.reduce(kvs, where, fn
       ({k, v}, nil) ->
         Sonata.Expr.column(k)
@@ -84,6 +84,8 @@ defmodule Sonata.Query do
       ({k, op, v}, nil) ->
         col = Sonata.Expr.column(k)
         apply(Sonata.Operator, op, [col, v])
+      (clause, nil) ->
+        clause
       ({k, v}, acc) ->
         k = Sonata.Expr.column(k)
         Sonata.Expr.and(Sonata.Operator.=(k, v), acc)
@@ -91,8 +93,14 @@ defmodule Sonata.Query do
         col = Sonata.Expr.column(k)
         apply(Sonata.Operator, op, [col, v])
         |> Sonata.Expr.and(acc)
+      (clause, acc) ->
+        clause
+        |> Sonata.Expr.and(acc)
     end)
     %{q | where: where}
+  end
+  def where(%{where: _} = q, clause) do
+    where(q, [clause])
   end
 
   def group_by(%{group_by: group_by} = q, c) when is_list(c) do

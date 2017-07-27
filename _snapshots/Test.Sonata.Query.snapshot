@@ -1,1 +1,9 @@
-%{}
+%{"test should find all results": [%{"first_column" => "foo",
+     "second_column" => 1}, %{"first_column" => "bar", "second_column" => 2},
+   %{"first_column" => "baz", "second_column" => 3}],
+  "test should find foo row": [%{"first_column" => "foo",
+     "second_column" => 1}],
+  "test should find rows with value < 3 row": [%{"first_column" => "foo",
+     "second_column" => 1}, %{"first_column" => "bar", "second_column" => 2}],
+  "test should return count based on a where clause": [%{"label" => 2}],
+  "test should return count of all rows": [%{"count" => 3}]}

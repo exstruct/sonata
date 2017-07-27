@@ -38,7 +38,7 @@ defmodule Test.Sonata.Query do
 
       select()
       |> from("my_first_table")
-      |> Sonata.Query.order_by(:second_column, :desc)
+      |> order_by(:second_column, :desc)
     ]
     |> assert_snapshot()
   end
@@ -60,7 +60,8 @@ defmodule Test.Sonata.Query do
       seed([{"foo", 1}, {"bar", 1}, {"baz", 2}]),
 
       select(
-        count(:second_column, :label) #SELECT second_column as label
+        count(:second_column)
+        |> as(:label)
       )
       |> from("my_first_table")
       |> where([{:second_column, 1}])

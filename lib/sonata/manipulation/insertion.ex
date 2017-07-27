@@ -67,6 +67,7 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
   end
   def rows(rows, opts, idx) do
     {rows, params, idx} = Utils.list_to_sql(rows, opts, idx, &(&1), fn(row, opts, idx) ->
+      row = :erlang.tuple_to_list(row)
       {row, params, idx} = Utils.list_to_sql(row, opts, idx)
       {Utils.join(row, ", "), params, idx}
     end)

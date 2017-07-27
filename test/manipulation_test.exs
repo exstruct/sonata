@@ -9,7 +9,7 @@ defmodule Test.Sonata.Manipulation do
 
       insert_into("my_first_table")
       |> fields([:second_column])
-      |> values([1])
+      |> values({1})
     ]
     |> assert_sql("""
     SELECT * FROM my_first_table
@@ -23,7 +23,7 @@ defmodule Test.Sonata.Manipulation do
       |> add_column(:second_column, "integer"),
 
       insert_into("my_first_table")
-      |> values(["foo", 345])
+      |> values({"foo", 345})
     ]
     |> assert_sql("""
     SELECT * FROM my_first_table
@@ -41,7 +41,7 @@ defmodule Test.Sonata.Manipulation do
 
       insert_into("my_first_table")
       |> fields([:first_column, :second_column])
-      |> values(["foo", default()])
+      |> values({"foo", default()})
     ]
     |> assert_sql("""
     SELECT * FROM my_first_table where second_column = 123;
@@ -58,7 +58,7 @@ defmodule Test.Sonata.Manipulation do
       ]),
 
       insert_into("my_first_table")
-      |> values(["foo", 456])
+      |> values({"foo", 456})
     ]
     |> assert_sql("""
     SELECT * FROM my_first_table where second_column = 456;
@@ -72,7 +72,7 @@ defmodule Test.Sonata.Manipulation do
       |> add_column(:second_column, "integer"),
 
       insert_into("my_first_table")
-      |> values(["foo", 789])
+      |> values({"foo", 789})
       |> returning([:first_column, {:second_column, :as_this_label}])
     ]
     |> assert_snapshot()
@@ -88,10 +88,10 @@ defmodule Test.Sonata.Manipulation do
       ]),
 
       insert_into("my_first_table")
-      |> values([1, 123]),
+      |> values({1, 123}),
 
       insert_into("my_first_table")
-      |> values([1, 456])
+      |> values({1, 456})
       |> on_conflict(
         :id,
         do_nothing()
@@ -112,10 +112,10 @@ defmodule Test.Sonata.Manipulation do
       ]),
 
       insert_into("my_first_table")
-      |> values([1, 123]),
+      |> values({1, 123}),
 
       insert_into("my_first_table")
-      |> values([1, 456])
+      |> values({1, 456})
       |> on_conflict(
         :id,
         do_update()

@@ -4515,10 +4515,6 @@ defmodule(Sonata.Function) do
   def(length(var1)) do
     %Sonata.Expr.Call{name: "length", arguments: [var1]}
   end
-  @doc("matches LIKE expression")
-  def(like(var1, var2)) do
-    %Sonata.Expr.Call{name: "like", arguments: [var1, var2]}
-  end
   @doc("convert LIKE pattern to use backslash escapes")
   def(like_escape(var1, var2)) do
     %Sonata.Expr.Call{name: "like_escape", arguments: [var1, var2]}

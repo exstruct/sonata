@@ -32,7 +32,7 @@ defmodule Test.Sonata.Expr do
 
       select()
       |> from("my_first_table")
-      |> where(is_distinct_from(:first_column, :second_column))
+      |> where(:first_column |> is_distinct_from(:second_column))
     ]
     |> assert_snapshot()
   end
@@ -49,7 +49,7 @@ defmodule Test.Sonata.Expr do
 
       select()
       |> from("my_first_table")
-      |> where(is_not_distinct_from(:first_column, :second_column))
+      |> where(:first_column |> is_not_distinct_from(:second_column))
     ]
     |> assert_snapshot()
   end
@@ -59,7 +59,7 @@ defmodule Test.Sonata.Expr do
       seed([{"foo", 1}, {"bar", nil}]),
       select()
       |> from("my_first_table")
-      |> where(is_null(:second_column))
+      |> where(:second_column |> is_null)
     ]
     |> assert_snapshot()
   end
@@ -69,7 +69,7 @@ defmodule Test.Sonata.Expr do
       seed([{"foo", 1}, {"bar", nil}]),
       select()
       |> from("my_first_table")
-      |> where(is_not_null(:second_column))
+      |> where(:second_column |> is_not_null)
     ]
     |> assert_snapshot()
   end
@@ -86,7 +86,7 @@ defmodule Test.Sonata.Expr do
 
       select()
       |> from("my_first_table")
-      |> where(is_true(:second_column))
+      |> where(:second_column |> is_true)
     ]
     |> assert_snapshot()
   end
@@ -103,7 +103,7 @@ defmodule Test.Sonata.Expr do
 
       select()
       |> from("my_first_table")
-      |> where(is_not_true(:second_column))
+      |> where(:second_column |> is_not_true)
     ]
     |> assert_snapshot()
   end
@@ -120,7 +120,7 @@ defmodule Test.Sonata.Expr do
 
       select()
       |> from("my_first_table")
-      |> where(is_false(:second_column))
+      |> where(:second_column |> is_false)
     ]
     |> assert_snapshot()
   end
@@ -137,7 +137,7 @@ defmodule Test.Sonata.Expr do
 
       select()
       |> from("my_first_table")
-      |> where(is_not_false(:second_column))
+      |> where(:second_column |> is_not_false)
     ]
     |> assert_snapshot()
   end
@@ -165,7 +165,7 @@ defmodule Test.Sonata.Expr do
       seed([{"foo", 1}, {"foobar", 2}, {"FOOBAR", 3}]),
       select()
       |> from("my_first_table")
-      |> where(Expr.like(:first_column, "foo"))
+      |> where(:first_column |> like("foo"))
     ]
     |> assert_snapshot()
   end
@@ -175,7 +175,7 @@ defmodule Test.Sonata.Expr do
       seed([{"foo", 1}, {"foobar", 2}, {"FOOBAR", 3}]),
       select()
       |> from("my_first_table")
-      |> where(not_like(:first_column, "foo"))
+      |> where(:first_column |> not_like("foo"))
     ]
     |> assert_snapshot()
   end
@@ -185,7 +185,7 @@ defmodule Test.Sonata.Expr do
       seed([{"foo", 1}, {"foobar", 2}, {"FOOBAR", 3}]),
       select()
       |> from("my_first_table")
-      |> where(ilike(:first_column, "foo"))
+      |> where(:first_column |> ilike("foo"))
     ]
     |> assert_snapshot()
   end
@@ -195,7 +195,7 @@ defmodule Test.Sonata.Expr do
       seed([{"foobar", 1}, {"FOOBAR", 2}, {"BAZ", 3}]),
       select()
       |> from("my_first_table")
-      |> where(not_ilike(:first_column, "foo"))
+      |> where(:first_column |> not_ilike("foo"))
     ]
     |> assert_snapshot()
   end
@@ -205,7 +205,7 @@ defmodule Test.Sonata.Expr do
       seed([{"foobar", 1}, {"FOOBAR", 2}, {"BAZ", 3}]),
       select()
       |> from("my_first_table")
-      |> where(similar_to(:first_column, "f"))
+      |> where(:first_column |> similar_to("f"))
     ]
     |> assert_snapshot()
   end
@@ -215,7 +215,7 @@ defmodule Test.Sonata.Expr do
       seed([{"foobar", 1}, {"FOOBAR", 2}, {"BAZ", 3}]),
       select()
       |> from("my_first_table")
-      |> where(not_similar_to(:first_column, "b"))
+      |> where(:first_column |> not_similar_to("b"))
     ]
     |> assert_snapshot()
   end

@@ -1,4 +1,4 @@
-defmodule Test.Sonata.CreateTable do
+defmodule Test.Sonata.DropTable do
   use Test.Sonata
 
   test "should drop table" do

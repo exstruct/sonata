@@ -15,16 +15,51 @@ defmodule Sonata.Definition.Column do
              deferrable: false,
              initially: nil,]
 
+  defmodule Check do
+    defstruct [
+      name: nil,
+      expr: nil,
+      inherit: true,
+    ]
+  end
+
   def column(name, type) do
-    %Sonata.Definition.Column{name: name, type: type}
+    %__MODULE__{name: name, type: type}
   end
 
-  def check(column, check) do
-    %{column | check: {:inherit, check}}
+  def check(column, name \\ nil, expr) do
+    merge_check(column, %Check{
+      name: name,
+      expr: expr,
+    })
   end
 
-  def check(column, check, :no_inherit) do
-    %{column | check: {:no_inherit, check}}
+  def check_no_inherit(column, name \\ nil, expr) do
+    merge_check(column, %Check{
+      name: name,
+      expr: expr,
+      inherit: false,
+    })
+  end
+
+  defp merge_check(%{check: nil} = column, check) do
+    %{column | check: check}
+  end
+  defp merge_check(%{
+    check: %{
+      expr: e,
+      name: n,
+      inherit: i
+    }
+  } = column, %{
+    inherit: i,
+    expr: expr,
+  } = check) do
+    %{column | check: %Check{
+      name: n,
+      expr: Sonata.Expr.and(e, expr),
+      inherit: i,
+    }}
   end
 
   def references(column, table) do
@@ -167,8 +202,7 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
     {nil, [], idx}
   end
   defp check(check, opts, idx) do
-    {check, params, idx} = PG.to_sql(check, opts, idx)
-    {["CHECK ", check], params, idx}
+    PG.to_sql(check, opts, idx)
   end
 
   defp reference(nil, _, idx) do
@@ -216,7 +250,27 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
   defp default(default, opts, idx) do
     {default, params, idx} = PG.to_sql(default, opts, idx)
     {["DEFAULT ", default], params, idx}
-    # TODO wtf postgrex?
-    # {["DEFAULT ", inspect(default)], [], idx}
+  end
+end
+
+defimpl Sonata.Postgres, for: Sonata.Definition.Column.Check do
+  alias Sonata.Postgres, as: PG
+  import PG.Utils
+
+  def to_sql(%{name: name, expr: expr, inherit: inherit}, opts, idx) do
+    {expr, params, idx} = PG.to_sql(expr, opts, idx)
+    {[name(name), "CHECK ", expr], params, idx}
+  end
+
+  defp name(nil) do
+    ""
+  end
+  defp name(name) do
+    # TODO escape
+    ["CONSTRAINT ", name, " "]
+  end
+
+  def on_row(_, _) do
+    nil
   end
 end

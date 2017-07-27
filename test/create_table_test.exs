@@ -31,9 +31,50 @@ defmodule Test.Sonata.CreateTable do
     create_table("products")
     |> add_column([
       column("product_no", "integer")
-      |> default(nextval("products_product_no_seq")),
+      |> default(random()),
     ])
     |> assert_sql(table_info("products"))
+  end
+
+  test "products SERIAL" do
+    create_table("products")
+    |> add_column([
+      column("product_no", "SERIAL")
+    ])
+    |> assert_sql(table_info("products"))
+  end
+
+  test "products CHECK price > 0" do
+    create_table("products")
+    |> add_column([
+      column("product_no", "integer"),
+      column("name", "text"),
+      column("price", "numeric")
+      |> check(
+        op(column("price"), :>, 0)
+      ),
+    ])
+    |> assert_sql_error("""
+    INSERT INTO products VALUES
+    (1, 'My product', -1);
+    """)
+  end
+
+  test "products named CHECK" do
+    create_table("products")
+    |> add_column([
+      column("product_no", "integer"),
+      column("name", "text"),
+      column("price", "numeric")
+      |> check(
+        "positive_price",
+        op(column("price"), :>, 0)
+      ),
+    ])
+    |> assert_sql_error("""
+    INSERT INTO products VALUES
+    (1, 'My product', -1);
+    """)
   end
 
   defp table_info(name) do

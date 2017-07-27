@@ -86,11 +86,11 @@ defmodule Sonata.Query do
         apply(Sonata.Operator, op, [col, v])
       ({k, v}, acc) ->
         k = Sonata.Expr.column(k)
-        Sonata.Keyword.and(Sonata.Operator.=(k, v), acc)
+        Sonata.Expr.and(Sonata.Operator.=(k, v), acc)
       ({k, op, v}, acc) ->
         col = Sonata.Expr.column(k)
         apply(Sonata.Operator, op, [col, v])
-        |> Sonata.Keyword.and(acc)
+        |> Sonata.Expr.and(acc)
     end)
     %{q | where: where}
   end

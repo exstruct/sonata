@@ -1,7 +1,12 @@
 defmodule Sonata do
   defmacro __using__(_) do
     quote do
-      import Sonata.{CreateTable,Definition.Column,Function}
+      import Sonata.{
+        CreateTable,
+        Definition.Column,
+        Expr,
+        Function
+      }
     end
   end
 

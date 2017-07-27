@@ -80,6 +80,22 @@ defmodule Test.Sonata do
     end
   end
 
+  defmacro assert_sql_error(struct, code) do
+    quote do
+      error = assert_raise Postgrex.Error, fn ->
+        query!(unquote(struct))
+      end
+
+      assert error.postgres.code == unquote(code)
+
+      error = Map.merge(error, %{
+        connection_id: nil
+      })
+
+      record_result(__MODULE__, error)
+    end
+  end
+
   defmacro assert_sql_error(struct, command, code) do
     quote do
       query!(unquote(struct))
@@ -102,8 +118,7 @@ defmodule Test.Sonata do
     quote do
       {response, on_row} = query!(unquote(struct))
       result = response
-      |> postgrex_result()
-      |> Enum.map(on_row)
+      |> postgrex_result(on_row)
 
       record_result(__MODULE__, result)
     end
@@ -111,7 +126,11 @@ defmodule Test.Sonata do
 
   require Logger
   def query!(structs) when is_list(structs) do
-    Enum.each(structs, &query!/1)
+    structs
+    |> Stream.map(&query!/1)
+    |> Enum.reduce({nil, nil}, fn(res, _) ->
+      res
+    end)
   end
   def query!(struct) do
     {sql, params, on_row} = Sonata.to_sql(struct)
@@ -136,12 +155,20 @@ defmodule Test.Sonata do
     send(module, {:add_snapshot, {test_name, result}})
   end
 
-  def postgrex_result(%{columns: columns, rows: rows}) do
+  def postgrex_result(res, on_row \\ &(&1))
+  def postgrex_result(res, nil) do
+    postgrex_result(res, &(&1))
+  end
+  def postgrex_result(%{command: command, rows: nil}, _) do
+    command
+  end
+  def postgrex_result(%{columns: columns, rows: rows}, on_row) do
     rows
     |> Enum.map(fn(row) ->
       columns
       |> Stream.zip(row)
       |> Enum.into(%{})
+      |> on_row.()
     end)
   end
 end

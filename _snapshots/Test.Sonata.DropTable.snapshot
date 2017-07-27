@@ -1,0 +1,12 @@
+%{"test should drop table": %Postgrex.Error{connection_id: nil, message: nil,
+   postgres: %{code: :undefined_table, file: "parse_relation.c", line: "1160",
+     message: "relation \"my_first_table\" does not exist", pg_code: "42P01",
+     position: "15", routine: "parserOpenTable", severity: "ERROR",
+     unknown: "ERROR"}},
+  "test should fail to drop table": %Postgrex.Error{connection_id: nil,
+   message: nil,
+   postgres: %{code: :undefined_table, file: "tablecmds.c", line: "760",
+     message: "table \"doesnt_exist\" does not exist", pg_code: "42P01",
+     routine: "DropErrorMsgNonExistent", severity: "ERROR", unknown: "ERROR"}},
+  "test should successfully drop table, whether it exists or not, pt.1": :drop_table,
+  "test should successfully drop table, whether it exists or not, pt.2": :drop_table}

@@ -34,10 +34,16 @@ defmodule Sonata.CreateTable do
     add_column(d, [col])
   end
 
+  def unique(d, u) when is_list(u) do
+    unique(d, Sonata.Expr.column_list(u))
+  end
   def unique(%{unique: unique} = d, u) do
-    %{d | unique: unique ++ [u]}
+    %{d | unique: [u | unique]}
   end
 
+  def primary_key(d, u) when is_list(u) do
+    primary_key(d, Sonata.Expr.column_list(u))
+  end
   def primary_key(d, key) do
     %{d | primary_key: key}
   end
@@ -103,6 +109,8 @@ defimpl Sonata.Postgres, for: Sonata.CreateTable do
     {columns, params, idx} = Utils.list_to_sql(columns, opts, idx)
 
     {checks, checks_params, idx} = checks(ct.checks, opts, idx)
+    {primary_key, primary_key_params, idx} = primary_key(ct.primary_key, opts, idx)
+    {unique, unique_params, idx} = unique(ct.unique, opts, idx)
 
     {
       Utils.join([
@@ -112,6 +120,8 @@ defimpl Sonata.Postgres, for: Sonata.CreateTable do
         Utils.join(Stream.concat([
           columns,
           checks,
+          primary_key,
+          unique,
         ]), ", "),
         ");"
       ], ""),
@@ -119,6 +129,8 @@ defimpl Sonata.Postgres, for: Sonata.CreateTable do
       Stream.concat([
         params,
         checks_params,
+        primary_key_params,
+        unique_params,
       ]),
 
       idx
@@ -132,6 +144,21 @@ defimpl Sonata.Postgres, for: Sonata.CreateTable do
     checks
     |> Enum.reverse()
     |> Utils.list_to_sql(opts, idx)
+  end
+
+  defp primary_key(nil, _, idx) do
+    {[], [], idx}
+  end
+  defp primary_key(primary_key, opts, idx) do
+    {sql, params, idx} = PG.to_sql(primary_key, opts, idx)
+    {[["PRIMARY KEY ", sql]], params, idx}
+  end
+
+  defp unique([], _, idx) do
+    {[], [], idx}
+  end
+  defp unique(unique, opts, idx) do
+    Utils.list_to_sql(unique, opts, idx, &(["UNIQUE ", &1]))
   end
 
   def on_row(_, _) do

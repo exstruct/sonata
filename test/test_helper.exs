@@ -74,6 +74,8 @@ defmodule Test.Sonata do
       {sql, params, _on_row} = Sonata.to_sql(unquote(struct))
       sql = :erlang.iolist_to_binary(sql)
 
+      # IO.puts sql
+
       Ecto.Adapters.SQL.query!(Repo, sql, params)
 
       result = Ecto.Adapters.SQL.query!(Repo, unquote(command))
@@ -83,16 +85,20 @@ defmodule Test.Sonata do
     end
   end
 
-  defmacro assert_sql_error(struct, command) do
+  defmacro assert_sql_error(struct, command, code) do
     quote do
       {sql, params, _on_row} = Sonata.to_sql(unquote(struct))
       sql = :erlang.iolist_to_binary(sql)
+
+      # IO.puts sql
 
       Ecto.Adapters.SQL.query!(Repo, sql, params)
 
       error = assert_raise Postgrex.Error, fn ->
         Ecto.Adapters.SQL.query!(Repo, unquote(command))
       end
+
+      assert error.postgres.code == unquote(code)
 
       error = Map.merge(error, %{
         connection_id: nil
@@ -106,6 +112,8 @@ defmodule Test.Sonata do
     quote do
       {sql, params, on_row} = Sonata.to_sql(unquote(struct))
       sql = :erlang.iolist_to_binary(sql)
+
+      # IO.puts sql
 
       result = Ecto.Adapters.SQL.query!(Repo, sql, params)
       |> postgrex_result()

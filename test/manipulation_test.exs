@@ -8,8 +8,8 @@ defmodule Test.Sonata.Manipulation do
       |> add_column(:second_column, "integer"),
 
       insert_into("my_first_table")
-      |> fields([:first_column])
-      |> values(["foo"])
+      |> fields([:second_column])
+      |> values([1])
     ]
     |> assert_sql("""
     SELECT * FROM my_first_table
@@ -23,7 +23,7 @@ defmodule Test.Sonata.Manipulation do
       |> add_column(:second_column, "integer"),
 
       insert_into("my_first_table")
-      |> values(["foo", "bar"])
+      |> values(["foo", 345])
     ]
     |> assert_sql("""
     SELECT * FROM my_first_table
@@ -93,15 +93,15 @@ defmodule Test.Sonata.Manipulation do
       insert_into("my_first_table")
       |> values([1, 456])
       |> on_conflict(
+        :id,
         do_nothing()
       )
     ]
     |> assert_sql("""
-    SELECT * FROM my_first_table where second_column = 123;
+    SELECT * FROM my_first_table where value = 123;
     """)
   end
 
-  # TODO not sure if the `set([{:value, 456}])` is right
   test "should update on conflict" do
     [
       create_table("my_first_table")
@@ -117,14 +117,15 @@ defmodule Test.Sonata.Manipulation do
       insert_into("my_first_table")
       |> values([1, 456])
       |> on_conflict(
+        :id,
         do_update()
         |> set([
-          {:value, 456},
+          value: 456,
         ])
       )
     ]
     |> assert_sql("""
-    SELECT * FROM my_first_table where second_column = 123;
+    SELECT * FROM my_first_table where value = 123;
     """)
   end
 end

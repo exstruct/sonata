@@ -59,15 +59,19 @@ defmodule Sonata.Manipulation do
     %{insertion | returning: returning ++ fields}
   end
 
-  def on_conflict(m, behavior) do
-    m
+  def on_conflict(m, column, action) when is_atom(column) do
+    on_conflict = %__MODULE__.OnConflict{
+      target: Sonata.Expr.column_list([column]),
+      action: action,
+    }
+    %{m | on_conflict: on_conflict}
   end
 
   def do_update() do
-    %{sets: []}
+    %__MODULE__.DoUpdate{}
   end
 
   def do_nothing() do
-    :DO_NOTHING
+    %__MODULE__.DoNothing{}
   end
 end

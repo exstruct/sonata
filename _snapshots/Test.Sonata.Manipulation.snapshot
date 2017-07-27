@@ -1,6 +1,9 @@
-%{"test should insert row": [%{"first_column" => "foo",
-     "second_column" => nil}],
+%{"test should do nothing on conflict": [%{"id" => 1, "value" => 123}],
+  "test should insert row": [%{"first_column" => nil, "second_column" => 1}],
+  "test should insert row without specifying columns": [%{"first_column" => "foo",
+     "second_column" => 345}],
   "test should insert value other than default": [%{"first_column" => "foo",
      "second_column" => 456}],
   "test should insert with defaults": [%{"first_column" => "foo",
-     "second_column" => 123}], "test should return value after insert": :insert}
+     "second_column" => 123}], "test should return value after insert": :insert,
+  "test should update on conflict": []}

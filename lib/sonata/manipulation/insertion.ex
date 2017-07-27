@@ -3,7 +3,8 @@ defmodule Sonata.Manipulation.Insertion do
              fields: [],
              rows: [],
              returning: [],
-             default_values: nil]
+             default_values: nil,
+             on_conflict: nil,]
 end
 
 defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
@@ -15,21 +16,24 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
     {fields, fields_params, idx} = fields(insertion.fields, opts, idx)
     {default_values, default_values_params, idx} = default_values(insertion.default_values, opts, idx)
     {rows, rows_params, idx} = rows(insertion.rows, opts, idx)
+    {on_conflict, on_conflict_params, idx} = on_conflict(insertion.on_conflict, opts, idx)
 
     {
-      Utils.join([
+      [Utils.join([
         "INSERT INTO",
         table,
         fields,
         default_values,
         rows,
-      ], " "),
+        on_conflict,
+      ], " "), ";"],
 
       Stream.concat([
         table_params,
         fields_params,
         default_values_params,
         rows_params,
+        on_conflict_params,
       ]),
 
       idx
@@ -47,8 +51,8 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
     {nil, [], idx}
   end
   def fields(fields, opts, idx) do
-    # TODO
-    {nil, [], idx}
+    {fields, params, idx} = Utils.list_to_sql(fields, opts, idx)
+    {["(", Utils.join(fields, ", "), ")"], params, idx}
   end
 
   def default_values(true, opts, idx) do
@@ -69,9 +73,14 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
     {["VALUES (", Utils.join(rows, "), ("), ")"], params, idx}
  end
 
+ defp on_conflict(nil, _, idx) do
+   {nil, [], idx}
+ end
+ defp on_conflict(on_conflict, opts, idx) do
+   PG.to_sql(on_conflict, opts, idx)
+ end
+
   # TODO
-  # defp on_conflict do
-  # end
   # defp returning do
   # end
 

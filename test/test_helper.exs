@@ -109,6 +109,7 @@ defmodule Test.Sonata do
     end
   end
 
+  require Logger
   def query!(structs) when is_list(structs) do
     Repo.transaction fn ->
       Enum.each(structs, &query!/1)
@@ -118,7 +119,7 @@ defmodule Test.Sonata do
     {sql, params, on_row} = Sonata.to_sql(struct)
     sql = :erlang.iolist_to_binary(sql)
 
-    IO.puts sql
+    Logger.debug(sql)
 
     {Ecto.Adapters.SQL.query!(Repo, sql, params), on_row}
   end

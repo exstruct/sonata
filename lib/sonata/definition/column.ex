@@ -203,7 +203,7 @@ defimpl Sonata.Postgres, for: Sonata.Definition.Column do
     {nil, [], idx}
   end
   defp type(type, _, idx) do
-    [type | _] = type |> to_string() |> String.split(" ")
+    type = Regex.replace(~r/[^a-zA-Z0-9_]/, to_string(type), "")
     {type, [], idx}
   end
 

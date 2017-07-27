@@ -48,7 +48,6 @@ defmodule Sonata.Expr do
 
   keywords = [
     :and,
-    :between,
     :is_distinct_from,
     :is_not_distinct_from,
     :is_null,
@@ -72,6 +71,22 @@ defmodule Sonata.Expr do
     def unquote(keyword)(lhs, rhs) do
       %Operator{operator: unquote(keyword_s), lhs: lhs, rhs: rhs}
     end
+  end
+
+  def between(column, lower, upper) do
+    %Operator{
+      operator: "BETWEEN",
+      lhs: column,
+      rhs: __MODULE__.and(lower, upper),
+    }
+  end
+
+  def not_between(column, lower, upper) do
+    %Operator{
+      operator: "NOT BETWEEN",
+      lhs: column,
+      rhs: __MODULE__.and(lower, upper),
+    }
   end
 
   def not(rhs) do

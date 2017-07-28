@@ -22,4 +22,8 @@ defimpl Sonata.Postgres, for: Sonata.Query.Join do
       idx
     }
   end
+
+  def on_row(_, _) do
+    nil
+  end
 end

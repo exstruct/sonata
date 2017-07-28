@@ -22,10 +22,6 @@ defmodule Sonata.Query do
     |> Column.column(columns)
   end
 
-  def column(q, c, alias) do
-    Column.column(q, [{c, alias}])
-  end
-
   def distinct(q) do
     %{q | distinct: true}
   end
@@ -37,16 +33,6 @@ defmodule Sonata.Query do
   end
   def distinct(q, d) do
     distinct(q, [d])
-  end
-
-  def value(q, value, as \\ nil) do
-    value = %__MODULE__.Value{value: value}
-    cond do
-      is_nil(as) ->
-        Column.column(q, value)
-      true ->
-        column(q, value, as)
-    end
   end
 
   def from(q, from) do
@@ -123,11 +109,14 @@ defmodule Sonata.Query do
     %{q | having: expr}
   end
 
-  def order_by(q, expr) do
-    Sonata.OrderBy.order_by(q, expr)
+  def order_by(%{order_by: expressions} = q, e) when is_list(e) do
+    %{q | order_by: expressions ++ e}
   end
-  def order_by(q, expr, order) do
-    Sonata.OrderBy.order_by(q, expr, order)
+  def order_by(order_by, e) do
+    order_by(order_by, [e])
+  end
+  def order_by(order_by, e, order) when order in [:asc, :desc] do
+    order_by(order_by, [{e, order}])
   end
 
   def limit(q, limit) do

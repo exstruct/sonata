@@ -1,5 +1,6 @@
 defmodule Sonata.AlterTable do
   defstruct [table: nil,
+             if_exists: nil,
              add_columns: [],
              drop_columns: []]
 

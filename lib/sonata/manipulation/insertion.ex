@@ -55,7 +55,7 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
     {["(", Utils.join(fields, ", "), ")"], params, idx}
   end
 
-  def default_values(true, opts, idx) do
+  def default_values(true, _, idx) do
     {"DEFAULT VALUES", [], idx}
   end
   def default_values(_, _, idx) do

@@ -21,6 +21,10 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.DoUpdate do
     }
   end
 
+  def on_row(_, _) do
+    nil
+  end
+
   defp sets([], _, idx) do
     {nil, [], idx}
   end

@@ -3,8 +3,6 @@ defmodule Sonata.Manipulation.DoNothing do
 end
 
 defimpl Sonata.Postgres, for: Sonata.Manipulation.DoNothing do
-  alias Sonata.Postgres.Utils
-
   def to_sql(_, _, idx) do
     {"DO NOTHING", [], idx}
   end

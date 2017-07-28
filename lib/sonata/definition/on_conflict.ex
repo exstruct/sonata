@@ -15,4 +15,8 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.OnConflict do
       action,
     ], Stream.concat(t_params, a_params), idx}
   end
+
+  def on_row(_, _) do
+    nil
+  end
 end

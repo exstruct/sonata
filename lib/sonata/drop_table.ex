@@ -15,7 +15,7 @@ defimpl Sonata.Postgres, for: Sonata.DropTable do
   alias Sonata.Postgres, as: PG
   alias PG.Utils
 
-  def to_sql(%{table: table, if_exists: if_exists}, opts, idx) do
+  def to_sql(%{table: table, if_exists: if_exists}, _, idx) do
     if_exists = if_exists(if_exists)
     {
       ["DROP TABLE ", if_exists, Utils.escape(table), ";"],

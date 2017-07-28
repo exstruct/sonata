@@ -1,4 +1,6 @@
 defprotocol Sonata.Postgres do
+  @fallback_to_any true
+
   def to_sql(statement, opts, idx)
   def on_row(statement, opts)
 end
@@ -50,6 +52,21 @@ defimpl Sonata.Postgres, for: Tuple do
       |> :erlang.tuple_to_list()
       |> Utils.list_to_sql(opts, idx)
     {Utils.join(sql, "."), params, idx}
+  end
+
+  def on_row(_, _) do
+    nil
+  end
+end
+
+defimpl Sonata.Postgres, for: Any do
+  def to_sql(value, %{params: false}, idx) do
+    raise Protocol.UndefinedError,
+      protocol: @protocol,
+      value: value
+  end
+  def to_sql(value, _, idx) do
+    {"$#{idx}", [value], idx + 1}
   end
 
   def on_row(_, _) do

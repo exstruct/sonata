@@ -12,11 +12,8 @@ defmodule Sonata.Postgres.Utils do
     {pop_comma(sql), params, idx}
   end
 
-  def column(column, _, idx) when is_binary(column) do
+  def column(column, _, idx) when is_binary(column) or is_atom(column) do
     {escape(column), [], idx}
-  end
-  def column(column, _, idx) when is_atom(column) do
-    {escape(Atom.to_string(column)), [], idx}
   end
   def column({column, alias}, opts, idx) do
     {column, params, idx} = column(column, opts, idx)

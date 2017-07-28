@@ -19,10 +19,6 @@ defmodule Sonata.Expr do
     %__MODULE__.Reference{name: name}
   end
 
-  def value(value) do
-    %__MODULE__.Value{value: value}
-  end
-
   def default() do
     %__MODULE__.Default{}
   end
@@ -103,6 +99,6 @@ defmodule Sonata.Expr do
   end
 
   def not(subject) do
-    %UnaryOperator{operator: "NOT", subject: subject, inverted: false}
+    %UnaryOperator{operator: "NOT", subject: subject, inverted: true}
   end
 end

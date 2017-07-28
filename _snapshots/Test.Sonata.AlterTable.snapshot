@@ -1,0 +1,9 @@
+%{"test add column": :create_table,
+  "test alter column data type": :create_table,
+  "test alter column default": :create_table,
+  "test drop column that exists": :create_table,
+  "test fail to drop column that doesn't exist": :create_table,
+  "test rename column": :create_table, "test rename table": :create_table,
+  "test set column not_null": :create_table,
+  "test success drop column that doesn't exist with `IF EXISTS`": :create_table,
+  "test success drop column that exists with `IF EXISTS`": :create_table}

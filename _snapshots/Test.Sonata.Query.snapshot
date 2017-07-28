@@ -9,6 +9,8 @@
   "test should return count from group by clause": [%{"count" => 2,
      "second_column" => 1}, %{"count" => 1, "second_column" => 2}],
   "test should return count of all rows": [%{"count" => 3}],
+  "test should return joined tables": [%{"first_column" => "foo", "id" => 1,
+     "label" => "label 1", "second_column" => 1}],
   "test should return limited result": [%{"first_column" => "foo",
      "second_column" => 1}],
   "test should reverse order": [%{"first_column" => "baz",

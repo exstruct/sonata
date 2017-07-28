@@ -3,11 +3,11 @@ defmodule Test.Sonata.DropTable do
 
   test "should drop table" do
     [
-      create_table("my_first_table")
+      create_table(:my_first_table)
       |> add_column(:first_column, "text")
       |> add_column(:second_column, "integer"),
 
-      drop_table("my_first_table"),
+      drop_table(:my_first_table),
     ]
     |> assert_sql_error("""
     SELECT * FROM my_first_table
@@ -15,24 +15,24 @@ defmodule Test.Sonata.DropTable do
   end
 
   test "should successfully drop table, whether it exists or not, pt.1" do
-    drop_table("doesnt_exist")
+    drop_table(:doesnt_exist)
     |> if_exists()
     |> assert_snapshot()
   end
 
   test "should successfully drop table, whether it exists or not, pt.2" do
     [
-      create_table("exists")
+      create_table(:exists)
       |> add_column(:first_column, "text"),
 
-      drop_table("exists")
+      drop_table(:exists)
       |> if_exists()
     ]
     |> assert_snapshot()
   end
 
   test "should fail to drop table" do
-    drop_table("doesnt_exist")
+    drop_table(:doesnt_exist)
     |> assert_sql_error(:undefined_table)
   end
 

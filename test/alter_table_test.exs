@@ -202,11 +202,8 @@ defmodule Test.Sonata.AlterTable do
 
 
   def seed() do
-    [
-      create_table(:my_first_table)
-      |> add_column(:first_column, "text")
-      |> add_column(:second_column, "integer")
-    ]
-    |> assert_snapshot()
+    create_table(:my_first_table)
+    |> add_column(:first_column, "text")
+    |> add_column(:second_column, "integer")
   end
 end

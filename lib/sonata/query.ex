@@ -60,18 +60,27 @@ defmodule Sonata.Query do
     {field, alias}
   end
 
-  ## TODO add support for join
-  def join(q, table, on) do
+  joins = [
+    :join,
+    :inner_join,
+    :left_outer_join,
+    :right_outer_join,
+    :full_outer_join,
+    :cross_join,
+    :natural_join,
+  ]
 
+  for join <- joins do
+    command = join |> to_string() |> String.upcase() |> String.replace("_", " ")
+    def unquote(join)(%{joins: joins} = q, table, on) do
+      join = %__MODULE__.Join{
+        command: unquote(command),
+        table: table,
+        on: on,
+      }
+      %{q | joins: [join | joins]}
+    end
   end
-
-  #def join() -> inner_join()
-  #def inner_join()
-  #def left_outer_join()
-  #def right_outer_join()
-  #def full_outer_join()
-  #def cross_join()
-  #def natural_join()
 
   def where(q, field, operator, value) do
     where(q, [{field, operator, value}])
@@ -151,6 +160,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
     {distinct, distinct_params, idx} = distinct(query.distinct, opts, idx)
     {columns, column_params, idx} = Utils.columns(query.columns, opts, idx)
     {from, from_params, idx} = from(query.from, opts, idx)
+    {joins, joins_params, idx} = joins(query.joins, opts, idx)
     {where, where_params, idx} = where(query.where, opts, idx)
     {group_by, group_by_params, idx} = group_by(query.group_by, opts, idx)
     {having, having_params, idx} = having(query.having, opts, idx)
@@ -164,6 +174,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
         distinct,
         columns,
         from,
+        joins,
         where,
         group_by,
         having,
@@ -176,6 +187,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
         distinct_params,
         column_params,
         from_params,
+        joins_params,
         where_params,
         group_by_params,
         having_params,
@@ -209,7 +221,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
   defp from(nil, _, idx) do
     {nil, [], idx}
   end
-  defp from(from, _, idx) when is_binary(from) do
+  defp from(from, _, idx) when is_binary(from) or is_atom(from) do
     {["FROM ", Utils.escape(from)], [], idx}
   end
   defp from({from, alias}, opts, idx) do
@@ -219,6 +231,13 @@ defimpl Sonata.Postgres, for: Sonata.Query do
   defp from(from, opts, idx) do
     {from, params, idx} = PG.to_sql(from, opts, idx)
     {["FROM (", from, ")"], params, idx}
+  end
+
+  defp joins([], _, idx) do
+    {nil, [], idx}
+  end
+  defp joins(joins, opts, idx) do
+    Utils.list_to_sql(joins, opts, idx)
   end
 
   defp where(nil, _, idx) do

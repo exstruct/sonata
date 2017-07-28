@@ -3,11 +3,11 @@ defmodule Test.Sonata.Manipulation do
 
   test "should insert row" do
     [
-      create_table("my_first_table")
+      create_table(:my_first_table)
       |> add_column(:first_column, "text")
       |> add_column(:second_column, "integer"),
 
-      insert_into("my_first_table")
+      insert_into(:my_first_table)
       |> fields([:second_column])
       |> values({1})
     ]
@@ -18,11 +18,11 @@ defmodule Test.Sonata.Manipulation do
 
   test "should insert row without specifying columns" do
     [
-      create_table("my_first_table")
+      create_table(:my_first_table)
       |> add_column(:first_column, "text")
       |> add_column(:second_column, "integer"),
 
-      insert_into("my_first_table")
+      insert_into(:my_first_table)
       |> values({"foo", 345})
     ]
     |> assert_sql("""
@@ -32,14 +32,14 @@ defmodule Test.Sonata.Manipulation do
 
   test "should insert with defaults" do
     [
-      create_table("my_first_table")
+      create_table(:my_first_table)
       |> add_column([
         column(:first_column, "text"),
         column(:second_column, "integer")
         |> default(123)
       ]),
 
-      insert_into("my_first_table")
+      insert_into(:my_first_table)
       |> fields([:first_column, :second_column])
       |> values({"foo", default()})
     ]
@@ -50,14 +50,14 @@ defmodule Test.Sonata.Manipulation do
 
   test "should insert value other than default" do
     [
-      create_table("my_first_table")
+      create_table(:my_first_table)
       |> add_column([
         column(:first_column, "text"),
         column(:second_column, "integer")
         |> default(123)
       ]),
 
-      insert_into("my_first_table")
+      insert_into(:my_first_table)
       |> values({"foo", 456})
     ]
     |> assert_sql("""
@@ -67,11 +67,11 @@ defmodule Test.Sonata.Manipulation do
 
   test "should return value after insert" do
     [
-      create_table("my_first_table")
+      create_table(:my_first_table)
       |> add_column(:first_column, "text")
       |> add_column(:second_column, "integer"),
 
-      insert_into("my_first_table")
+      insert_into(:my_first_table)
       |> values({"foo", 789})
       |> returning([:first_column, {:second_column, :as_this_label}])
     ]
@@ -80,17 +80,17 @@ defmodule Test.Sonata.Manipulation do
 
   test "should do nothing on conflict" do
     [
-      create_table("my_first_table")
+      create_table(:my_first_table)
       |> add_column([
         column(:id, "serial")
         |> unique(),
         column(:value, "integer")
       ]),
 
-      insert_into("my_first_table")
+      insert_into(:my_first_table)
       |> values({1, 123}),
 
-      insert_into("my_first_table")
+      insert_into(:my_first_table)
       |> values({1, 456})
       |> on_conflict(
         :id,
@@ -104,17 +104,17 @@ defmodule Test.Sonata.Manipulation do
 
   test "should update on conflict" do
     [
-      create_table("my_first_table")
+      create_table(:my_first_table)
       |> add_column([
         column(:id, "serial")
         |> unique(),
         column(:value, "integer")
       ]),
 
-      insert_into("my_first_table")
+      insert_into(:my_first_table)
       |> values({1, 123}),
 
-      insert_into("my_first_table")
+      insert_into(:my_first_table)
       |> values({1, 456})
       |> on_conflict(
         :id,

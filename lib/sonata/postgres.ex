@@ -39,3 +39,20 @@ defimpl Sonata.Postgres, for: [Integer, Float, Atom, BitString] do
     nil
   end
 end
+
+defimpl Sonata.Postgres, for: Tuple do
+  alias Sonata.Postgres, as: PG
+  alias PG.Utils
+
+  def to_sql(value, opts, idx) do
+    {sql, params, idx} =
+      value
+      |> :erlang.tuple_to_list()
+      |> Utils.list_to_sql(opts, idx)
+    {Utils.join(sql, "."), params, idx}
+  end
+
+  def on_row(_, _) do
+    nil
+  end
+end

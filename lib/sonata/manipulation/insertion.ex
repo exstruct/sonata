@@ -43,7 +43,7 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
   defp table(table, _, idx) when table in [nil, false, ""] do
     {nil, [], idx}
   end
-  defp table(table, opts, idx) when is_binary(table) do
+  defp table(table, opts, idx) when is_binary(table) or is_atom(table) do
     {Utils.escape(table), opts, idx}
   end
 

@@ -6,4 +6,11 @@
   "test should find rows with value < 3 row": [%{"first_column" => "foo",
      "second_column" => 1}, %{"first_column" => "bar", "second_column" => 2}],
   "test should return count based on a where clause": [%{"label" => 2}],
-  "test should return count of all rows": [%{"count" => 3}]}
+  "test should return count from group by clause": [%{"count" => 2,
+     "second_column" => 1}, %{"count" => 1, "second_column" => 2}],
+  "test should return count of all rows": [%{"count" => 3}],
+  "test should return limited result": [%{"first_column" => "foo",
+     "second_column" => 1}],
+  "test should reverse order": [%{"first_column" => "baz",
+     "second_column" => 3}, %{"first_column" => "bar", "second_column" => 2},
+   %{"first_column" => "foo", "second_column" => 1}]}

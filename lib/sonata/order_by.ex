@@ -22,7 +22,13 @@ defimpl Sonata.Postgres, for: Sonata.OrderBy do
 
   def to_sql(%{query: query, order_by: e}, opts, idx) do
     {query, query_params, idx} = PG.to_sql(query, opts, idx)
-    {e, e_params, idx} = Utils.columns(e, opts, idx)
+
+    {e, e_params, idx} = Utils.list_to_sql(e, opts, idx, &(&1), fn
+      ({expr, order}, opts, idx) ->
+        PG.to_sql(expr, opts, idx)
+      (expr, opts, idx) ->
+        PG.to_sql(expr, opts, idx)
+    end)
 
     {
       [query, " ORDER BY ", e],

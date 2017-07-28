@@ -134,6 +134,7 @@ defmodule Test.Sonata do
   end
   def query!(struct) do
     {sql, params, on_row} = Sonata.to_sql(struct)
+
     sql = :erlang.iolist_to_binary(sql)
 
     Logger.debug(sql)
@@ -149,7 +150,7 @@ defmodule Test.Sonata do
       nil ->
         :ok
       snapshot ->
-        assert result == snapshot
+        assert snapshot == result
     end
 
     send(module, {:add_snapshot, {test_name, result}})

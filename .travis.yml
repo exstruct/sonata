@@ -1,17 +1,27 @@
 language: elixir
+
 elixir:
   - 1.5.0
+
 otp_release:
   - 20.0
+
 env:
   global:
     - DATABASE_URL=postgres://postgres:@localhost:5432/sonata
+    - MIX_ENV=test
+
 services:
   - postgresql
+
 addons:
   postgresql: "9.6"
+
 before_script:
   - psql -c 'create database sonata;' -U postgres
+
+script: mix coveralls.travis
+
 cache:
   directories:
     - _build

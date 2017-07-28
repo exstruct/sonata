@@ -1,0 +1,6 @@
+{
+  "skip_files": [
+    "lib/sonata/function.ex",
+    "lib/sonata/operator.ex"
+  ]
+}

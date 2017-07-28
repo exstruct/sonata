@@ -233,7 +233,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
     {nil, [], idx}
   end
   defp group_by(columns, opts, idx) do
-    {columns, params} = Utils.columns(columns, opts, idx)
+    {columns, params, idx} = Utils.columns(columns, opts, idx)
     {["GROUP BY ", columns], params, idx}
   end
 
@@ -249,9 +249,18 @@ defimpl Sonata.Postgres, for: Sonata.Query do
     {nil, [], idx}
   end
   defp order_by(columns, opts, idx) do
-    {columns, params, idx} = Utils.columns(columns, opts, idx)
-    {["ORDER BY ", columns], params, idx}
+    {columns, params, idx} = Utils.list_to_sql(columns, opts, idx, &(&1), fn
+      ({expr, order}, opts, idx) ->
+        {sql, params, idx} = PG.to_sql(expr, opts, idx)
+        {[sql, order_by_op(order)], params, idx}
+      (expr, opts, idx) ->
+        PG.to_sql(expr, opts, idx)
+    end)
+    {["ORDER BY ", Utils.join(columns, ", ")], params, idx}
   end
+
+  defp order_by_op(:asc), do: " ASC"
+  defp order_by_op(:desc), do: " DESC"
 
   defp limit(limit, _, idx) when limit in [:all, nil] do
     {nil, [], idx}

@@ -74,4 +74,8 @@ defmodule Sonata.Manipulation do
   def do_nothing() do
     %__MODULE__.DoNothing{}
   end
+
+  def where(q, k, v) do
+
+  end
 end

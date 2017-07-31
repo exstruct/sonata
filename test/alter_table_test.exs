@@ -197,10 +197,6 @@ defmodule Test.Sonata.AlterTable do
   # test "ALTER [ COLUMN ] column SET STORAGE { PLAIN | EXTERNAL | EXTENDED | MAIN }" do
   # end
 
-
-
-
-
   def seed() do
     create_table(:my_first_table)
     |> add_column(:first_column, "text")

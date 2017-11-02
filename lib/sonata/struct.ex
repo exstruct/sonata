@@ -3,11 +3,9 @@ defmodule Sonata.StructBuilder do
 
   defmacro __using__(_) do
     quote do
-      import Sonata.Combination.Builder
-      import Sonata.Manipulation.Builder
-      import Sonata.Misc.Builder
-      import Sonata.Query.Builder
-      alias Sonata.Query.Builder, as: Query
+      import Sonata.Combination
+      import Sonata.Manipulation
+      import Sonata.Query
       import unquote(__MODULE__), only: unquote(@root_macros)
 
       @table nil
@@ -36,14 +34,14 @@ defmodule Sonata.StructBuilder do
       end
 
       def create_table do
-        Sonata.CreateTable.Builder.create_table(unquote(name_s))
+        Sonata.CreateTable.create_table(unquote(name_s))
       end
       defoverridable [create_table: 0]
 
-      import Sonata.Query.Builder, only: []
+      import Sonata.Query, only: []
       import unquote(__MODULE__), only: [column: 2]
       unquote(block)
-      import Sonata.Query.Builder
+      import Sonata.Query
       import unquote(__MODULE__), only: unquote(@root_macros)
     end
   end
@@ -59,7 +57,7 @@ defmodule Sonata.StructBuilder do
       @columns unquote(name_a)
       def column(query, name) when name in [unquote(name_a), unquote(name_s)] do
         query
-        |> Sonata.Query.Builder.column(unquote(name_s))
+        |> Sonata.Builder.column(unquote(name_s))
       end
 
       defp unquote(define_column(name_s))() do
@@ -74,7 +72,7 @@ defmodule Sonata.StructBuilder do
 
       def create_table do
         tab = super()
-        Sonata.CreateTable.Builder.add_column(tab, unquote(define_column(name_s))())
+        Sonata.CreateTable.add_column(tab, unquote(define_column(name_s))())
       end
       defoverridable [create_table: 0]
     end

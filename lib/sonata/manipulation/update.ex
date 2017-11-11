@@ -61,10 +61,10 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Update do
     {nil, [], idx}
   end
   defp sets(sets, opts, idx) do
-    {sets, {params, idx}} = Enum.map_reduce(sets, {[], idx}, fn({field, value}, {params, idx}) ->
+    {sets, {params, idx}} = Enum.map_reduce(sets, {[], idx}, fn(%{lhs: field, operator: operator, rhs: value}, {params, idx}) ->
       {field, p, idx} = Sonata.Postgres.to_sql(field, opts, idx)
       {value, p, idx} = Sonata.Postgres.to_sql(value, opts, idx)
-      {[field, " = (", value, ")"], {Stream.concat(params, p), idx}}
+      {[field, operator, " (", value, ")"], {Stream.concat(params, p), idx}}
     end)
     {["SET ", Sonata.Postgres.Utils.join(sets, ", ")], params, idx}
   end

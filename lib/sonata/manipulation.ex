@@ -37,8 +37,8 @@ defmodule Sonata.Manipulation do
     %Update{table: table, table_alias: table_alias}
   end
 
-  def set(insertion = %{sets: sets}, kvs) do
-    %{insertion | sets: sets ++ Enum.map(kvs, fn
+  def set(insertion = %{fields: fields}, kvs) do
+    %{insertion | fields: fields ++ Enum.map(kvs, fn
       ({fields, value}) when is_list(fields) ->
         Expr.op(Sonata.Expr.column_list(fields) = value)
       ({fields, _value}) when is_tuple(fields) ->

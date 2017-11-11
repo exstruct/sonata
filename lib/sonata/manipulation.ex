@@ -37,12 +37,25 @@ defmodule Sonata.Manipulation do
     %Update{table: table, table_alias: table_alias}
   end
 
-  def set(insertion = %{fields: fields}, kvs) do
+  def fields(insertion = %{fields: fields}, kvs) do
     %{insertion | fields: fields ++ Enum.map(kvs, fn
       ({fields, value}) when is_list(fields) ->
         Expr.op(Sonata.Expr.column_list(fields) = value)
       ({fields, _value}) when is_tuple(fields) ->
         fields
+        |> :erlang.tuple_to_list()
+        |> Sonata.Expr.column_list()
+      ({field, value}) ->
+        Expr.op(Sonata.Expr.column(field) = value)
+    end)}
+  end
+
+  def set(insertion = %{sets: sets}, kvs) do
+    %{insertion | sets: sets ++ Enum.map(kvs, fn
+      ({sets, value}) when is_list(sets) ->
+        Expr.op(Sonata.Expr.column_list(sets) = value)
+      ({sets, _value}) when is_tuple(sets) ->
+        sets
         |> :erlang.tuple_to_list()
         |> Sonata.Expr.column_list()
       ({field, value}) ->

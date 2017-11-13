@@ -46,15 +46,15 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Update do
   defp table(table, _, idx) when table in [nil, false, ""] do
     {nil, [], idx}
   end
-  defp table(table, opts, idx) when is_binary(table) do
-    {Utils.escape(table), opts, idx}
+  defp table(table, _, idx) when is_binary(table) do
+    {Utils.escape(table), [], idx}
   end
 
   defp table_alias(nil, _, idx) do
     {nil, [], idx}
   end
-  defp table_alias(alias, opts, idx) do
-    {[" AS ", Utils.escape(alias)], opts, idx}
+  defp table_alias(alias, _, idx) do
+    {[" AS ", Utils.escape(alias)], [], idx}
   end
 
   defp sets(sets, _, idx) when sets in [nil, false, "", []] do

@@ -43,15 +43,15 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
   defp table(table, _, idx) when table in [nil, false, ""] do
     {nil, [], idx}
   end
-  defp table(table, opts, idx) when is_binary(table) or is_atom(table) do
-    {Utils.escape(table), opts, idx}
+  defp table(table, _, idx) when is_binary(table) or is_atom(table) do
+    {Utils.escape(table), [], idx}
   end
 
   def fields([], _, idx) do
     {nil, [], idx}
   end
-  def fields(fields, opts, idx) do
-    {["(", Utils.join(fields, ", "), ")"], opts, idx}
+  def fields(fields, _, idx) do
+    {["(", Utils.join(fields, ", "), ")"], [], idx}
   end
 
   def default_values(true, _, idx) do

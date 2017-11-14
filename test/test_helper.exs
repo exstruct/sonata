@@ -174,4 +174,6 @@ defmodule Test.Sonata do
   end
 end
 
-ExUnit.start()
+ExUnit.start([
+  exclude: [:pending]
+])

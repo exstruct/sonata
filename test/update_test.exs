@@ -49,30 +49,32 @@ defmodule Test.Sonata.Insertion do
     |> assert_snapshot()
   end
 
-  # test "update returning" do
-  #   [
-  #     seed(),
-  #     update(:table1)
-  #     |> set(:label, "foobar")
-  #     |> returning(:label)
-  #     |> as("label")
-  #   ]
-  #   |> assert_snapshot()
-  # end
+  @tag :pending
+  test "update returning" do
+    [
+      seed(),
+      update(:table1)
+      |> set(:label, "foobar")
+      |> returning(:label)
+      |> as("label")
+    ]
+    |> assert_snapshot()
+  end
 
-  # test "update where" do
-  #   [
-  #     seed(),
-  #     update(:table1)
-  #     |> as(:t1)
-  #     |> set({{:t1, :label}, "new store label"})
-  #     |> from(:table2)
-  #     |> as(:t2)
-  #     |> where({:t2, :id}, :=, 3)
-  #     |> where({:t2, :table1_id}, :=, {:t1, :id})
-  #   ]
-  #   |> assert_snapshot()
-  # end
+  @tag :pending
+  test "update where" do
+    [
+      seed(),
+      update(:table1)
+      |> as(:t1)
+      |> set({{:t1, :label}, "new store label"})
+      |> from(:table2)
+      |> as(:t2)
+      |> where({:t2, :id}, :=, 3)
+      |> where({:t2, :table1_id}, :=, {:t1, :id})
+    ]
+    |> assert_snapshot()
+  end
 
   def seed() do
     [

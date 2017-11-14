@@ -1,14 +1,15 @@
 defmodule Test.Sonata.Expr do
   use Test.Sonata
 
-  # test "AND" do
-  #   [
-  #     seed([{"foo", 1}, {"foo", 2}, {"foo", 3}]),
-  #     select()
-  #     |> from(:my_first_table)
-  #     |> where(Expr.and({:first_column, :=, "foo"}, {:second_column, :>, 1}))
-  #   ]
-  # end
+  @tag :pending
+  test "AND" do
+    [
+      seed([{"foo", 1}, {"foo", 2}, {"foo", 3}]),
+      select()
+      |> from(:my_first_table)
+      |> where(Expr.and({:first_column, :=, "foo"}, {:second_column, :>, 1}))
+    ]
+  end
 
   test "BETWEEN" do
     [
@@ -142,6 +143,7 @@ defmodule Test.Sonata.Expr do
     |> assert_snapshot()
   end
 
+  # @tag :pending
   # test "IS_UNKNOWN" do
   #   [
   #     seed(),
@@ -151,6 +153,7 @@ defmodule Test.Sonata.Expr do
   #   ]
   # end
 
+  # @tag :pending
   # test "IS_NOT_UNKNOWN" do
   #   [
   #     seed(),

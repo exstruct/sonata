@@ -1,1 +1,5 @@
-%{}
+%{"test one row, multiple values again (different interface)": :update,
+  "test should update multiple cols in a row": :update,
+  "test should update multiple rows, multiple values": :update,
+  "test should update multiple rows, one col each": :update,
+  "test should update one value in row": :update}

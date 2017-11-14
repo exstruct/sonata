@@ -8,12 +8,10 @@ defmodule Test.Sonata.Manipulation do
       |> add_column(:second_column, "integer"),
 
       insert_into(:my_first_table)
-      |> fields([:second_column])
+      |> fields(["second_column"])
       |> values({1})
     ]
-    |> assert_sql("""
-    SELECT * FROM my_first_table
-    """)
+    |> assert_sql("SELECT * FROM my_first_table")
   end
 
   test "should insert row without specifying columns" do

@@ -51,7 +51,7 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
     {nil, [], idx}
   end
   def fields(fields, _, idx) do
-    {["(", Utils.join(fields, ", "), ")"], [], idx}
+    {["(", Utils.join(fields |> Enum.map(&Utils.escape/1), ", "), ")"], [], idx}
   end
 
   def default_values(true, _, idx) do

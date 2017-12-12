@@ -11,6 +11,7 @@ defmodule Sonata.StructBuilder do
       @table nil
       Module.register_attribute(__MODULE__, :columns, accumulate: true)
       Module.register_attribute(__MODULE__, :relations, accumulate: true)
+      Module.register_attribute(__MODULE__, :primary_keys, accumulate: true)
 
       @before_compile unquote(__MODULE__)
 
@@ -64,7 +65,7 @@ defmodule Sonata.StructBuilder do
         var!(column_name) = unquote(name_a)
         _ = var!(column_name)
         var!(column) = %Sonata.Definition.Column{name: unquote(name_s)}
-        import unquote(__MODULE__), only: [type: 1, primary_key: 0, default: 1, references: 1, not_null: 0]
+        import unquote(__MODULE__), only: [type: 1, primary_key: 0, default: 1, references: 1, references: 2, not_null: 0]
         unquote(block)
         import unquote(__MODULE__), only: [column: 2]
         var!(column)
@@ -95,7 +96,7 @@ defmodule Sonata.StructBuilder do
   defmacro primary_key() do
     module = __CALLER__.module
     [column | _] = Module.get_attribute(module, :columns)
-    Module.put_attribute(module, :primary_key, column)
+    Module.put_attribute(module, :primary_keys, column)
     quote do
       var!(column) = %{var!(column) | primary_key: true}
     end
@@ -117,9 +118,10 @@ defmodule Sonata.StructBuilder do
 
   defmacro not_null() do
     quote do
-      var!(column) = %{var!(column) | not_null: true}
+      var!(column) = %{var!(column) | null: false}
     end
   end
+
 
   @doc """
 
@@ -133,9 +135,28 @@ defmodule Sonata.StructBuilder do
         end
       {:__aliases__, _, _} ->
         quote do
-          {type, column} = unquote(table).__primary_key__
+          [{col, type}] = unquote(table).__primary_keys__ |> :maps.to_list
           table = unquote(table).table
-          var!(column) = %{var!(column) | type: type, reference: {column, table}}
+          var!(column) = %{var!(column) | type: type, reference: {table, col}}
+        end
+    end
+  end
+
+  defmacro references(table, target_column) do
+    case table do
+      _ when is_binary(table) ->
+        quote do
+          var!(column) = Sonata.Definition.Column.reference(var!(column), unquote(table), unquote(to_string(target_column)))
+        end
+      {:__aliases__, _, _} ->
+        quote do
+          var!(column) = case unquote(table).__primary_keys__ do
+            %{unquote(to_string(target_column)) => type} ->
+              table = unquote(table).table
+              %{var!(column) | type: type, reference: {table, unquote(to_string(target_column))}}
+            _ ->
+              raise ArgumentError, unquote("Unknown target column: #{target_column}")
+          end
         end
     end
   end
@@ -181,14 +202,24 @@ defmodule Sonata.StructBuilder do
   end
 
   defmacro __before_compile__(env) do
-    pk = Module.get_attribute(env.module, :primary_key)
+    pks = Module.get_attribute(env.module, :primary_keys)
     quote do
       if @table do
         defstruct @columns ++ @relations ++ [__meta__: nil]
 
-        def __primary_key__ do
-          %{type: type} = unquote(define_column(pk))()
-          {type, unquote(to_string(pk))}
+        def columns do
+          unquote(Module.get_attribute(env.module, :columns) |> Enum.map(&to_string/1) |> Enum.reverse())
+        end
+
+        if unquote(length(pks) > 0) do
+          def __primary_keys__ do
+            %{unquote_splicing(Enum.map(pks, fn(col) ->
+              {to_string(col), quote do
+                %{type: type} = unquote(define_column(col))()
+                type
+              end}
+            end))}
+          end
         end
 
         @__input_columns Enum.map(@columns, &{&1, &1}) ++ Enum.map(@columns, &{&1, to_string(&1)})

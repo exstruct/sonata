@@ -17,6 +17,7 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
     {default_values, default_values_params, idx} = default_values(insertion.default_values, opts, idx)
     {rows, rows_params, idx} = rows(insertion.rows, opts, idx)
     {on_conflict, on_conflict_params, idx} = on_conflict(insertion.on_conflict, opts, idx)
+    {returning, returning_params, idx} = returning(insertion.returning, opts, idx)
 
     {
       [Utils.join([
@@ -26,6 +27,7 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
         default_values,
         rows,
         on_conflict,
+        returning,
       ], " "), ";"],
 
       Stream.concat([
@@ -34,6 +36,7 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
         default_values_params,
         rows_params,
         on_conflict_params,
+        returning_params,
       ]),
 
       idx
@@ -81,8 +84,13 @@ defimpl Sonata.Postgres, for: Sonata.Manipulation.Insertion do
  end
 
   # TODO
-  # defp returning do
-  # end
+  defp returning(returning, _, idx) when returning in [nil, false, "", []] do
+    {nil, [], idx}
+  end
+  defp returning(returning, opts, idx) do
+    {sql, params, idx} = PG.Utils.columns(returning, opts, idx)
+    {["RETURNING ", sql], params, idx}
+  end
 
   def on_row(_, _) do
     nil

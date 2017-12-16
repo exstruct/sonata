@@ -11,15 +11,20 @@ defmodule Sonata.Query do
              offset: nil,
              struct: nil]
 
-  alias Sonata.Builder.Column
-
   def select() do
     %__MODULE__{}
   end
 
   def select(columns) do
     select()
-    |> Column.column(columns)
+    |> columns(columns)
+  end
+
+  def columns(q, column) when not is_list(column) do
+    columns(q, [column])
+  end
+  def columns(%{columns: c} = q, columns) do
+    %{q | columns: c ++ columns}
   end
 
   def distinct(q) do
@@ -130,15 +135,6 @@ defmodule Sonata.Query do
   def into_struct(q, struct) do
     %{q | struct: struct}
   end
-
-  defimpl Column do
-    def column(%{columns: columns} = q, c) when is_list(c) do
-      %{q | columns: columns ++ c}
-    end
-    def column(q, c) do
-      column(q, [c])
-    end
-  end
 end
 
 defimpl Sonata.Postgres, for: Sonata.Query do
@@ -147,7 +143,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
 
   def to_sql(query, opts, idx) do
     {distinct, distinct_params, idx} = distinct(query.distinct, opts, idx)
-    {columns, column_params, idx} = Utils.columns(query.columns, opts, idx)
+    {columns, column_params, idx} = columns(query.columns, opts, idx)
     {from, from_params, idx} = from(query.from, opts, idx)
     {joins, joins_params, idx} = joins(query.joins, opts, idx)
     {where, where_params, idx} = where(query.where, opts, idx)
@@ -205,6 +201,28 @@ defimpl Sonata.Postgres, for: Sonata.Query do
   defp distinct(distinct, opts, idx) when is_list(distinct) do
     {columns, params, idx} = Utils.columns(distinct, opts, idx)
     {["DISTINCT ON (", columns, ")"], params, idx}
+  end
+
+  defp columns([], _, idx) do
+    {"*", [], idx}
+  end
+  defp columns(columns, _, idx) do
+    {
+      columns
+      |> Enum.map(fn(column) ->
+        case (column) do
+          {table, column} ->
+            [Utils.escape(table), ".", Utils.escape(column)]
+          {table, column, as} ->
+            [Utils.escape(table), ".", Utils.escape(column), " AS ", Utils.escape(as)]
+          column ->
+            Utils.escape(column)
+        end
+      end)
+      |> Enum.join(", "),
+      [],
+      idx
+    }
   end
 
   defp from(nil, _, idx) do

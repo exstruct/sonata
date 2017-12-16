@@ -7,16 +7,25 @@ defmodule Sonata.Expr do
     %__MODULE__.Call{name: name, arguments: arguments}
   end
 
-  def column(name) do
-    %__MODULE__.Reference{name: name}
+  def column({table, column}) do
+    %__MODULE__.Reference{table: table, column: column}
+  end
+  def column({table, column, as}) do
+    %__MODULE__.Reference{table: table, column: column, as: as}
+  end
+  def column(column) do
+    %__MODULE__.Reference{column: column}
   end
 
   def column_list(columns) do
     %__MODULE__.ColumnList{columns: columns}
   end
 
-  def table(name) do
-    %__MODULE__.Reference{name: name}
+  def table({table, as}) do
+    %__MODULE__.Reference{table: table, as: as}
+  end
+  def table(table) do
+    %__MODULE__.Reference{table: table}
   end
 
   def default() do

@@ -60,7 +60,7 @@ defimpl Sonata.Postgres, for: Tuple do
 end
 
 defimpl Sonata.Postgres, for: Any do
-  def to_sql(value, %{params: false}, idx) do
+  def to_sql(value, %{params: false}, _idx) do
     raise Protocol.UndefinedError,
       protocol: @protocol,
       value: value

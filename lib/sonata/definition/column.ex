@@ -128,7 +128,7 @@ defmodule Sonata.Definition.Column do
     } = column, %{
       inherit: i,
       expr: expr,
-    } = check) do
+    }) do
       %{column | check: %Check{
         name: n,
         expr: Sonata.Expr.and(e, expr),

@@ -34,12 +34,6 @@ defimpl Sonata.Postgres, for: Sonata.Expr.Reference do
     Utils.escape(column)
   end
 
-  defp as(nil) do
-    ""
-  end
-  defp as(as) do
-    [" AS ", Utils.escape(as)]
-  end
 
   def on_row(_, _) do
     nil

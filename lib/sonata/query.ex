@@ -244,7 +244,7 @@ defimpl Sonata.Postgres, for: Sonata.Query do
     {nil, [], idx}
   end
   defp joins(joins, opts, idx) do
-    Utils.list_to_sql(joins, opts, idx)
+    Utils.list_rev_to_sql(joins, opts, idx)
   end
 
   defp where(nil, _, idx) do
